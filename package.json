@@ -1,0 +1,40 @@
+{
+  "name": "@launchfirstagency/happy-mail",
+  "version": "0.0.1",
+  "description": "Email verification and validation to make you smile",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "coverage": "jest --coverage"
+  },
+  "engines": {
+    "node": ">=18.18",
+    "npm": ">=8.1"
+  },
+  "dependencies": {
+    "got": "^11.8.5",
+    "tld-extract": "2.1.0",
+    "validator": "13.11.0",
+    "lodash": "4.17.21"
+  },
+  "devDependencies": {
+    "@types/node": "^18",
+    "@types/validator": "^13.11.0",
+    "@jest/globals": "^29.6.1",
+    "jest": "^29.6.1",
+    "ts-jest": "^29.1.1",
+    "prettier": "^2.5.1",
+    "typescript": "^5.3.3"
+  },
+  "prettier": {
+    "singleQuote": false,
+    "trailingComma": "all",
+    "printWidth": 120
+  }
+}
