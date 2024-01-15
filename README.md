@@ -1,5 +1,5 @@
-
 # Happy Mail
+
 Easy to use email validation and deliverability checking.
 
 A few of the things you can do with happy mail:
@@ -11,20 +11,31 @@ A few of the things you can do with happy mail:
 1. Determine the hosting provider
 1. See if an email addresses DNS has proper records for quality sending (spf, dkim, dmarc etc.)
 
-
 ### Inbox Health
+
 todo
 
 ### Validation
+
 todo
 
 ### Verification & Delivery
+
 todo
 
-##  Utilities
+## Utilities
+
 todo
 
 # TODO
+
 -[]NPM Setup
 -[]Init Tests
 -[]jsdoc or similar to add documentation
+
+### Other items
+
+- Contributing
+- Branching strategy
+- Roadmap
+- Issue contribution template
