@@ -1,13 +1,13 @@
 import { resolveTxt } from "node:dns";
 import { promisify } from "node:util";
-import EmailValidationService from "../validation/email-validation.service";
+import { EmailValidationService } from "../validation/email-validation.service";
 import sslChecker from "../util/ssl-checker";
 import { whois } from "../util/domain-expiry";
 import { splitEmailDomain } from "../util/helpers";
 import { resolveMxRecords } from "../util/mx";
 
 const resolveTxtAsync = promisify(resolveTxt);
-export default class InboxHealthService {
+export class InboxHealthService {
   private emailValidationService: EmailValidationService;
   constructor() {
     this.emailValidationService = new EmailValidationService();

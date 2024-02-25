@@ -1,7 +1,7 @@
 import MailValidatorResponse, { MailBoxCanReceiveStatus } from "../types/mail-validator-response";
 import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../util/helpers";
 import { DomainParts } from "../types/domain";
-import BounceVerificationService, { NeverBounceFlagTypes } from "./bounce-verification.service";
+import { BounceVerificationService, NeverBounceFlagTypes } from "./bounce-verification.service";
 import { EmailType } from "../types/email";
 import { MXHostType } from "../types/mx-host";
 import { lowestPriorityMxRecord, resolveMxRecords } from "../util/mx";
@@ -12,7 +12,7 @@ const PERSONAL_DOMAINS = require("./data/personal-email-domains.json");
 
 //@ts-ignore
 
-export default class EmailValidationService {
+export class EmailValidationService {
   private bounceVerificationService: BounceVerificationService;
   constructor() {
     this.bounceVerificationService = new BounceVerificationService();
@@ -129,9 +129,9 @@ export default class EmailValidationService {
   }
 }
 
-(async () => {
-  const email = "dan@zzqaau.rest";
-  const service = new EmailValidationService();
-  const result = await service.validate(email);
-  console.log(result);
-})();
+// (async () => {
+//   const email = "dan@zzqaau.rest";
+//   const service = new EmailValidationService();
+//   const result = await service.validate(email);
+//   console.log(result);
+// })();

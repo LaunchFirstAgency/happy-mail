@@ -4,7 +4,7 @@ import got from "got";
 
 const NEVER_BOUNCE_API_KEY = process.env.NEVER_BOUNCE_API_KEY;
 
-export default class BounceVerificationService {
+export class BounceVerificationService {
   constructor() {}
 
   smtpConnectionWorks() {
