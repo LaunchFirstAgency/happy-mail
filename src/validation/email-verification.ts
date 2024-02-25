@@ -1,6 +1,5 @@
-import * as validator from "validator";
-import * as dns from "dns";
-import * as net from "net";
+import * as dns from "node:dns";
+import * as net from "node:net";
 import { checkPort, lowestPriorityMxRecord, resolveMxRecords } from "../util/mx";
 import { isValidEmail } from "../util/helpers";
 
@@ -106,7 +105,7 @@ export async function verifyEmail(email: string, options: EmailVerificationOptio
 // Define constants for SMTP response codes
 const SMTP_READY = "220";
 const SMTP_OK = "250";
-
+const SMTP_FAIL = "550";
 async function beginSMTPQueries(email: string, smtpServer: string, options: EmailVerificationOptions): Promise<any> {
   return new Promise((resolve, reject) => {
     const socket = net.createConnection(options.port ?? 25, smtpServer);
@@ -160,6 +159,11 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     const handleStage3 = () => {
       console.log("sending quit", response);
       sendCommand("QUIT\r\n", () => {
+        //console.log("QUIT", response);
+        if (response.indexOf(SMTP_FAIL) > -1) {
+          return (success = false);
+        }
+        // SMTP may connect properly on quit, but still issue a 550 indicating invalid address
         if (
           response.indexOf(SMTP_OK) > -1 ||
           (options.ignore && typeof options.ignore === "string" && response.indexOf(options.ignore) > -1)
@@ -167,7 +171,7 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
           // RCPT Worked, the address is valid
           return (success = true);
         }
-        return false;
+        return (success = false);
       });
       socket.end();
     };
@@ -221,7 +225,6 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     });
 
     socket.on("timeout", () => {
-      console.error("Timeout");
       socket.destroy();
       reject({
         success: false,
