@@ -4,7 +4,6 @@
   "description": "Email verification and validation to make you smile",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
   "files": [
     "dist/**/*"
   ],
