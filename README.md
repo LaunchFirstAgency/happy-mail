@@ -11,6 +11,14 @@ A few of the things you can do with happy mail:
 1. Determine the hosting provider
 1. See if an email addresses DNS has proper records for quality sending (spf, dkim, dmarc etc.)
 
+
+# Getting Started
+
+```bash
+npm i @launchfirstagency/happy-mail
+```
+
+
 ### Inbox Health
 
 todo
