@@ -5,7 +5,7 @@ import streamConsumers from "node:stream/consumers";
 // CONSTANTS
 const kDefaultSocketServer = "whois.iana.org";
 
-function* lazyParseIanaWhoisResponse(rawResponseStr) {
+function* lazyParseIanaWhoisResponse(rawResponseStr: string) {
   /** @type {string[]} */
   const lines = rawResponseStr.split(/\r?\n/);
 
@@ -20,7 +20,7 @@ function* lazyParseIanaWhoisResponse(rawResponseStr) {
   }
 }
 
-export async function whois(domain, server = kDefaultSocketServer) {
+export async function whois(domain: string, server = kDefaultSocketServer) {
   const client = new net.Socket();
   setImmediate(() => client.connect(43, server, () => client.write(`${domain}\r\n`)));
 
