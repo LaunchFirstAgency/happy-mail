@@ -147,6 +147,7 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     const handleStage2 = () => {
       if (response.indexOf(SMTP_OK) > -1) {
         // MAIL Worked, now try RCPT TO
+        console.log("sending RCPT TO");
         sendCommand(`RCPT TO:<${email}>\r\n`, () => {
           stage++;
         });
@@ -157,16 +158,18 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
 
     // Function to handle the response after RCPT TO command
     const handleStage3 = () => {
-      sendCommand("QUIT\r\n");
+      console.log("sending quit", response);
+      sendCommand("QUIT\r\n", () => {
+        if (
+          response.indexOf(SMTP_OK) > -1 ||
+          (options.ignore && typeof options.ignore === "string" && response.indexOf(options.ignore) > -1)
+        ) {
+          // RCPT Worked, the address is valid
+          return (success = true);
+        }
+        return false;
+      });
       socket.end();
-      if (
-        response.indexOf(SMTP_OK) > -1 ||
-        (options.ignore && typeof options.ignore === "string" && response.indexOf(options.ignore) > -1)
-      ) {
-        // RCPT Worked, the address is valid
-        return true;
-      }
-      return false;
     };
 
     // Function to send a command to the SMTP server
@@ -177,8 +180,8 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     socket.on("data", (data) => {
       response += data.toString();
       const completed = response.slice(-1) === "\n";
-
-      if (completed && stage < 3) {
+      console.log("completed", completed, stage);
+      if (completed && stage <= 3) {
         switch (stage) {
           case 0:
             handleStage0();
@@ -197,6 +200,7 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     });
 
     socket.on("error", (err) => {
+      console.error("Error", err);
       reject({
         success: false,
         info: "SMTP connection error",
@@ -217,6 +221,7 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     });
 
     socket.on("timeout", () => {
+      console.error("Timeout");
       socket.destroy();
       reject({
         success: false,
