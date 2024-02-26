@@ -1,7 +1,7 @@
-import * as dns from "node:dns";
-import * as net from "node:net";
+import { setServers } from "dns";
 import { checkPort, lowestPriorityMxRecord, resolveMxRecords } from "../util/mx";
 import { isValidEmail } from "../util/helpers";
+import { createConnection } from "net";
 
 /**
  * {
@@ -59,9 +59,9 @@ function optionsDefaults(options?: EmailVerificationOptions): EmailVerificationO
 function dnsConfig(options: EmailVerificationOptions): void {
   try {
     if (Array.isArray(options.dns)) {
-      dns.setServers(options.dns);
+      setServers(options.dns);
     } else if (typeof options.dns === "string") {
-      dns.setServers([options.dns]);
+      setServers([options.dns]);
     }
   } catch (e) {
     throw new Error("Invalid DNS Options");
@@ -95,7 +95,7 @@ export async function verifyEmail(email: string, options: EmailVerificationOptio
     let lowestPriorityAddress = lowestPriorityMxRecord(addresses);
 
     console.info(`Choosing ${lowestPriorityAddress.exchange} for connection`);
-    const smtpResult = await beginSMTPQueries(email, lowestPriorityAddress.exchange, options);
+    const smtpResult = await beginSMTPQueries(email, "alt1.aspmx.l.google.com", options);
     return smtpResult;
   } catch (err) {
     return { success: false, info: "Domain not found", code: EmailVerificationInfoCodes.DomainNotFound };
@@ -108,7 +108,8 @@ const SMTP_OK = "250";
 const SMTP_FAIL = "550"; //TODO: other failure codes
 async function beginSMTPQueries(email: string, smtpServer: string, options: EmailVerificationOptions): Promise<any> {
   return new Promise((resolve, reject) => {
-    const socket = net.createConnection(options.port ?? 25, smtpServer);
+    //force use of ipv4
+    const socket = createConnection({ port: options.port ?? 25, host: smtpServer, family: 4 });
     let response = "";
     let stage = 0;
     let success = false;
@@ -240,3 +241,12 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     }
   });
 }
+(async () => {
+  const s = await verifyEmail("dan@chatkick.com", {
+    fqdn: "chatkick.com",
+    //timeout: 30000,
+    sender: "dan@chatkick.com",
+  });
+
+  console.log(s);
+})();
