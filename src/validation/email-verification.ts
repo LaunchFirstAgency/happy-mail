@@ -95,7 +95,7 @@ export async function verifyEmail(email: string, options: EmailVerificationOptio
     let lowestPriorityAddress = lowestPriorityMxRecord(addresses);
 
     console.info(`Choosing ${lowestPriorityAddress.exchange} for connection`);
-    const smtpResult = await beginSMTPQueries(email, "alt1.aspmx.l.google.com", options);
+    const smtpResult = await beginSMTPQueries(email, lowestPriorityAddress.exchange, options);
     return smtpResult;
   } catch (err) {
     return { success: false, info: "Domain not found", code: EmailVerificationInfoCodes.DomainNotFound };
@@ -172,9 +172,9 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
           // RCPT Worked, the address is valid
           return (success = true);
         }
+        socket.end();
         return (success = false);
       });
-      socket.end();
     };
 
     // Function to send a command to the SMTP server
@@ -205,7 +205,6 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     });
 
     socket.on("error", (err) => {
-      console.error("Error", err);
       reject({
         success: false,
         info: "SMTP connection error",
