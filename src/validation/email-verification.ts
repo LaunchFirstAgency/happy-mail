@@ -241,12 +241,3 @@ async function beginSMTPQueries(email: string, smtpServer: string, options: Emai
     }
   });
 }
-(async () => {
-  const s = await verifyEmail("dan@chatkick.com", {
-    fqdn: "chatkick.com",
-    //timeout: 30000,
-    sender: "dan@chatkick.com",
-  });
-
-  console.log(s);
-})();
