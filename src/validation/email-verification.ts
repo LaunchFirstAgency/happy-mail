@@ -105,7 +105,7 @@ export async function verifyEmail(email: string, options: EmailVerificationOptio
 // Define constants for SMTP response codes
 const SMTP_READY = "220";
 const SMTP_OK = "250";
-const SMTP_FAIL = "550";
+const SMTP_FAIL = "550"; //TODO: other failure codes
 async function beginSMTPQueries(email: string, smtpServer: string, options: EmailVerificationOptions): Promise<any> {
   return new Promise((resolve, reject) => {
     const socket = net.createConnection(options.port ?? 25, smtpServer);
