@@ -1,21 +1,36 @@
 import MailValidatorResponse, { MailBoxCanReceiveStatus } from "../types/mail-validator-response";
 import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../util/helpers";
 import { DomainParts } from "../types/domain";
-import { BounceVerificationService, NeverBounceFlagTypes } from "./bounce-verification.service";
+import { NeverBounceService, NeverBounceFlagTypes } from "./bounce-verification.service";
 import { EmailType } from "../types/email";
 import { MXHostType } from "../types/mx-host";
 import { lowestPriorityMxRecord, resolveMxRecords } from "../util/mx";
+import { EmailVerificationInfoCodes, EmailVerificationService } from "./email-verification";
+import got from "got";
+import { checkSpamList } from "../inbox-health/spam-check";
 
 const DISPOSABLE_DOMAINS = require("./data/disposable-email-domains.json");
 const WILDCARD_DISPOSABLE_DOMAINS = require("./data/wildcard-disposable-email-domains.json");
 const PERSONAL_DOMAINS = require("./data/personal-email-domains.json");
 
-//@ts-ignore
+export interface IEmailVerificationService {
+  verify(email: string): Promise<EmailVerificationResponse>;
+}
 
+//todo: consider adding detail flags like NeverBounceFlagTypes enum
+export type EmailVerificationResponse = {
+  success: boolean;
+  info: string;
+  addr: string;
+  code: EmailVerificationInfoCodes;
+  tryagain?: boolean;
+};
 export class EmailValidationService {
-  private bounceVerificationService: BounceVerificationService;
+  private emailVerificationService: IEmailVerificationService;
   constructor() {
-    this.bounceVerificationService = new BounceVerificationService();
+    this.emailVerificationService = process.env.NEVER_BOUNCE_API_KEY
+      ? new NeverBounceService()
+      : new EmailVerificationService(); //todo: probably make this default, and waterfall?
   }
 
   async validate(email: string): Promise<MailValidatorResponse> {
@@ -54,7 +69,8 @@ export class EmailValidationService {
     }
 
     try {
-      const mxRecs = await resolveMxRecords(domain.domain);
+      const mailHost = domain.sub ? `${domain.sub}.${domain.domain}` : domain.domain;
+      const mxRecs = await resolveMxRecords(mailHost);
 
       if (!mxRecs) {
         return MXHostType.UNKNOWN;
@@ -66,12 +82,13 @@ export class EmailValidationService {
         return MXHostType.GOOGLE;
       }
 
-      if (firstRecEx.includes("outlook.com")) {
+      if (firstRecEx.includes("outlook.com") || firstRecEx.includes("microsoft.com")) {
         return MXHostType.OUTLOOK;
       }
       //TODO more host types
       return MXHostType.OTHER;
     } catch (error) {
+      console.error("Failed to get MX Host", error);
       return MXHostType.UNKNOWN;
     }
   }
@@ -95,19 +112,22 @@ export class EmailValidationService {
   }
 
   async bounceCheck(email: string): Promise<MailBoxCanReceiveStatus> {
-    const bounceVerification = await this.bounceVerificationService.checkNeverBounce(email);
+    const bounceVerification = await this.emailVerificationService.verify(email);
     console.log("Bounce Verification", bounceVerification);
 
-    if (bounceVerification.status === "auth_failure") {
-      console.warn("NeverBounce Auth Failure");
-      return MailBoxCanReceiveStatus.UNKNOWN;
+    if (!bounceVerification.success) {
+      console.warn("Verification Failure");
+      return MailBoxCanReceiveStatus.UNSAFE;
     }
 
-    if (bounceVerification.flags.includes(NeverBounceFlagTypes["spamtrap_network"])) {
+    //todo: add more checks for flags
+    if (bounceVerification.info.includes(NeverBounceFlagTypes["spamtrap_network"])) {
       return MailBoxCanReceiveStatus.HIGH_RISK;
     }
-    //allows for catchall servers (e.g. msft behind a firewall) to pass
-    return bounceVerification.result !== "invalid" ? MailBoxCanReceiveStatus.SAFE : MailBoxCanReceiveStatus.UNSAFE;
+    //completed + successful
+    return bounceVerification.success && bounceVerification.code === EmailVerificationInfoCodes.FinishedVerification
+      ? MailBoxCanReceiveStatus.SAFE
+      : MailBoxCanReceiveStatus.UNKNOWN;
   }
 
   /**
@@ -130,8 +150,9 @@ export class EmailValidationService {
 }
 
 // (async () => {
-//   const email = "dan@zzqaau.rest";
+//   const email = "dan@chatkick.com";
 //   const service = new EmailValidationService();
 //   const result = await service.validate(email);
+//   await checkSpamList("74.105.21.182");
 //   console.log(result);
 // })();

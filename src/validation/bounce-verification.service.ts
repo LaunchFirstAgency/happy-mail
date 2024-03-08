@@ -1,24 +1,40 @@
 import got from "got";
+import { EmailVerificationResponse, IEmailVerificationService } from "./email-validation.service";
+import { EmailVerificationInfoCodes } from "./email-verification";
 
 //NeverBounce and ZeroBounce Checks
-
-const NEVER_BOUNCE_API_KEY = process.env.NEVER_BOUNCE_API_KEY;
-
-export class BounceVerificationService {
-  constructor() {}
-
-  smtpConnectionWorks() {
-    //https://github.com/EmailVerify/email-verify/blob/master/index.js
+export class NeverBounceService implements IEmailVerificationService {
+  protected readonly NEVER_BOUNCE_API_KEY: string = process.env.NEVER_BOUNCE_API_KEY ?? "";
+  constructor() {
+    if (!this.NEVER_BOUNCE_API_KEY) {
+      console.error("NEVER_BOUNCE_API_KEY not set");
+    }
   }
-
   /**
    * https://developers.neverbounce.com/reference/single-check
    * @param email
    */
-  async checkNeverBounce(email: string): Promise<NeverBounceResponse> {
-    const URL = `https://api.neverbounce.com/v4/single/check?key=${NEVER_BOUNCE_API_KEY}&email=${email}`;
-    const response = await got.post(URL).json<NeverBounceResponse>();
-    return response;
+  async verify(email: string): Promise<EmailVerificationResponse> {
+    const URL = `https://api.neverbounce.com/v4/single/check?key=${this.NEVER_BOUNCE_API_KEY}&email=${email}`;
+    try {
+      const response = await got.post(URL).json<NeverBounceResponse>();
+      return {
+        success: response.status === "success",
+        info: `${response.result} - ${response.flags.join(", ")}`,
+        addr: email,
+        code:
+          response.result === "disposable"
+            ? EmailVerificationInfoCodes.DomainNotFound
+            : EmailVerificationInfoCodes.FinishedVerification,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        info: "Failed to verify email with NeverBounce",
+        addr: email,
+        code: EmailVerificationInfoCodes.SMTPConnectionError,
+      };
+    }
   }
 }
 
