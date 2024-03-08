@@ -68,7 +68,11 @@ function dnsConfig(options: EmailVerificationOptions): void {
   }
 }
 
-export async function verifyEmail(email: string, options: EmailVerificationOptions): Promise<any> {
+export async function verifyEmail(
+  email: string,
+  options: EmailVerificationOptions,
+  mxRecordsIndex: number = 0,
+): Promise<any> {
   if (!isValidEmail(email)) {
     throw new Error(errors.invalid.email);
   }
@@ -91,12 +95,26 @@ export async function verifyEmail(email: string, options: EmailVerificationOptio
       return { success: false, info: "No MX Records", code: EmailVerificationInfoCodes.NoMxRecords };
     }
 
-    // Find the lowest priority mail server
-    let lowestPriorityAddress = lowestPriorityMxRecord(addresses);
+    // Sort MX records by priority in descending order
+    addresses.sort((a, b) => b.priority - a.priority);
 
-    console.info(`Choosing ${lowestPriorityAddress.exchange} for connection`);
-    const smtpResult = await beginSMTPQueries(email, lowestPriorityAddress.exchange, options);
-    return smtpResult;
+    // If we have tried all MX records without success, return failure
+    if (mxRecordsIndex >= addresses.length) {
+      return { success: false, info: "All MX records failed", code: EmailVerificationInfoCodes.DomainNotFound };
+    }
+
+    const currentMxRecord = addresses[mxRecordsIndex];
+    console.info(`Attempting connection to ${currentMxRecord.exchange} with priority ${currentMxRecord.priority}`);
+
+    try {
+      const smtpResult = await beginSMTPQueries(email, currentMxRecord.exchange, options);
+      // If the SMTP query was successful, return the result
+      return smtpResult;
+    } catch (smtpError) {
+      console.error(`Error connecting to ${currentMxRecord.exchange}: ${smtpError.message}`);
+      // Recursively try the next MX record
+      return verifyEmail(email, options, mxRecordsIndex + 1);
+    }
   } catch (err) {
     return { success: false, info: "Domain not found", code: EmailVerificationInfoCodes.DomainNotFound };
   }
