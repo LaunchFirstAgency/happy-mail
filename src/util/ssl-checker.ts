@@ -12,12 +12,21 @@ export interface IResolvedValues {
   validFor: string[];
 }
 
-const getDaysBetween = (validFrom: Date, validTo: Date): number => Math.round(Math.abs(+validFrom - +validTo) / 8.64e7);
-const getDaysRemaining = (validFrom: Date, validTo: Date): number => {
+export const getDaysBetween = (validFrom: Date, validTo: Date): number =>
+  Math.round(Math.abs(+validFrom - +validTo) / 8.64e7);
+export const getDaysRemaining = (validFrom: Date, validTo: Date): number => {
   const daysRemaining = getDaysBetween(validFrom, validTo);
 
-  if (new Date(validTo).getTime() < new Date().getTime()) {
+  // Normalize dates to midnight for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to midnight
+  const validToDate = new Date(validTo.getTime());
+  validToDate.setHours(0, 0, 0, 0); // Set to midnight
+
+  if (validToDate < today) {
     return -daysRemaining;
+  } else if (validToDate.getTime() === today.getTime()) {
+    return 0;
   }
 
   return daysRemaining;

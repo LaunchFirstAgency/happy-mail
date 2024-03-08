@@ -1,6 +1,7 @@
 import { MXHostType } from "../../types/mx-host";
 import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../helpers";
 import { checkPort } from "../mx";
+import { getDaysBetween, getDaysRemaining } from "../ssl-checker";
 describe("Util", () => {
   it("should be true", () => {
     expect(true).toBe(true);
@@ -81,8 +82,50 @@ describe("Util", () => {
     });
   });
   describe("ssl", () => {
-    it("should be true", () => {
-      expect(true).toBe(true);
+    describe("getDaysBetween", () => {
+      it("should be 1", () => {
+        const validFrom = new Date("2021-01-01");
+        const validTo = new Date("2021-01-02");
+        const days = getDaysBetween(validFrom, validTo);
+        expect(days).toBe(1);
+      });
+      it("should be 0", () => {
+        const validFrom = new Date("2021-01-01");
+        const validTo = new Date("2021-01-01");
+        const days = getDaysBetween(validFrom, validTo);
+        expect(days).toBe(0);
+      });
+    });
+    describe("getDaysRemaining", () => {
+      beforeAll(() => {
+        jest.useFakeTimers().setSystemTime(new Date("2021-01-01T01:00:00Z").getTime());
+      });
+      it("should be 1", () => {
+        const validFrom = new Date("2021-01-01");
+        const validTo = new Date("2021-01-02");
+        const days = getDaysRemaining(validFrom, validTo);
+        expect(days).toBe(1);
+      });
+      it("should be 0", () => {
+        const validFrom = new Date("2021-01-01");
+        const validTo = new Date("2021-01-01");
+        const days = getDaysRemaining(validFrom, validTo);
+        //weirdness because of -0
+        expect(0 === days).toEqual(true);
+      });
+      it("should be -1", () => {
+        const validFrom = new Date("2021-01-01");
+        const validTo = new Date("2020-12-31");
+        const days = getDaysRemaining(validFrom, validTo);
+        expect(days).toBe(-1);
+      });
+    });
+    describe("sslChecker", () => {
+      //   it("Should return valid: true", async () => {
+      //     const host = "google.com";
+      //     const resolved = await sslChecker(host);
+      //     expect(resolved.valid).toBe(true);
+      //   });
     });
   });
 });
