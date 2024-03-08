@@ -26,10 +26,10 @@ export function normalizeEmailAddress(email: string, provider: MXHostType): stri
     const cleanName = name.split("+")[0];
     normalEmail = `${cleanName}@${domain}`;
 
-    return normalEmail;
+    return normalEmail.toLocaleLowerCase();
   }
 
-  return normalEmail ? normalEmail : "INVALID";
+  return normalEmail ? normalEmail.toLocaleLowerCase() : "INVALID";
 }
 
 export function splitEmailDomain(email: string): DomainParts | false {
