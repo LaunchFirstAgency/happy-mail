@@ -1,5 +1,6 @@
 import { MXHostType } from "../../types/mx-host";
 import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../helpers";
+import { checkPort } from "../mx";
 describe("Util", () => {
   it("should be true", () => {
     expect(true).toBe(true);
@@ -51,8 +52,32 @@ describe("Util", () => {
     });
   });
   describe("mx", () => {
-    it("should be true", () => {
-      expect(true).toBe(true);
+    describe("checkPort", () => {
+      it("should be true for port 9999", () => {
+        const port = "9999";
+        const isValid = checkPort(port);
+        expect(isValid).toBe(true);
+      });
+      it("should be false for port 0", () => {
+        const port = "0";
+        const isValid = checkPort(port);
+        expect(isValid).toBe(false);
+      });
+      it("should be false for port -1", () => {
+        const port = "-1";
+        const isValid = checkPort(port);
+        expect(isValid).toBe(false);
+      });
+      it("should be false for port 0.1", () => {
+        const port = "0.1";
+        const isValid = checkPort(port);
+        expect(isValid).toBe(false);
+      });
+      it("should be false for port string", () => {
+        const port = "string";
+        const isValid = checkPort(port);
+        expect(isValid).toBe(false);
+      });
     });
   });
   describe("ssl", () => {

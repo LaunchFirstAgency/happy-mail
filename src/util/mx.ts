@@ -13,7 +13,10 @@ export async function resolveMxRecords(domain: string): Promise<MxRecord[]> {
 }
 
 export const checkPort = (port: unknown): boolean =>
-  !isNaN(parseFloat(port as string)) && Math.sign(port as number) === 1;
+  !isNaN(parseInt(port as string)) &&
+  Math.sign(port as number) === 1 &&
+  parseInt(port as string) <= 65535 &&
+  parseInt(port as string) > 0;
 
 export const lowestPriorityMxRecord = (mxRecords: MxRecord[]): MxRecord =>
   mxRecords.reduce((prev, current) => (prev.priority < current.priority ? prev : current));
