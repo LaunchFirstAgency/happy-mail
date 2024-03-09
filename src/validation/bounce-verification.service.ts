@@ -2,7 +2,6 @@ import got from "got";
 import { EmailVerificationResponse, IEmailVerificationService } from "./email-validation.service";
 import { EmailVerificationInfoCodes } from "./email-verification";
 
-//NeverBounce and ZeroBounce Checks
 export class NeverBounceService implements IEmailVerificationService {
   protected readonly NEVER_BOUNCE_API_KEY: string = process.env.NEVER_BOUNCE_API_KEY ?? "";
   constructor() {

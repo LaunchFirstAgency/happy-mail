@@ -37,9 +37,9 @@ todo
 
 # TODO
 
--[]NPM Setup
--[]Init Tests
--[]jsdoc or similar to add documentation
+
+
+1. Documentation
 
 ### Other items
 

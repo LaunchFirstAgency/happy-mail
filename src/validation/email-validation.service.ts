@@ -153,6 +153,7 @@ export class EmailValidationService {
 //   const email = "dan@chatkick.com";
 //   const service = new EmailValidationService();
 //   const result = await service.validate(email);
-//   await checkSpamList("74.105.21.182");
+//   const lists = await checkSpamList("74.105.21.182");
 //   console.log(result);
+//   console.log(lists);
 // })();
