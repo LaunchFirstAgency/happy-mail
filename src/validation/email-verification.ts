@@ -47,7 +47,7 @@ const SMTP_FAIL = "550"; //TODO: other failure codes
 export class EmailVerificationService implements IEmailVerificationService {
   protected readonly defaultOptions: EmailVerificationOptions = {
     port: 25,
-    sender: "name@example.org",
+    sender: "josh@adaptalent.com",
     timeout: 0,
     fqdn: "mail.example.org",
     ignore: false,
@@ -150,6 +150,7 @@ export class EmailVerificationService implements IEmailVerificationService {
             stage++;
           });
         } else {
+          console.log("response", response);
           if (response.indexOf("421") > -1 || response.indexOf("450") > -1 || response.indexOf("451") > -1) {
             tryagain = true;
           }

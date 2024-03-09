@@ -5,6 +5,8 @@ import sslChecker from "../util/ssl-checker";
 import { whois } from "../util/domain-expiry";
 import { splitEmailDomain } from "../util/helpers";
 import { resolveMxRecords } from "../util/mx";
+import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "./dkim";
+import { MXHostType } from "../types/mx-host";
 
 const resolveTxtAsync = promisify(resolveTxt);
 export class InboxHealthService {
@@ -25,11 +27,10 @@ export class InboxHealthService {
     const domainParts = splitEmailDomain(email);
     if (!domainParts) return;
     const txt = await resolveTxtAsync(domainParts.domain);
-    console.log(JSON.stringify(txt));
-    let dmarc;
-    let spf;
+    console.log(txt);
+    let dmarc: string | null = null;
+    let spf: string | null = null;
     for (const t in txt) {
-      console.log(txt[t]);
       for (const r in txt[t]) {
         if (txt[t][r].includes("v=DMARC1")) {
           dmarc = txt[t][r];
@@ -47,10 +48,8 @@ export class InboxHealthService {
     if (!domainParts) return;
     try {
       const txt = await resolveTxtAsync(`_dmarc.${domainParts.domain}`);
-      console.log(JSON.stringify(txt));
-      let dmarc;
+      let dmarc: string | null = null;
       for (const t in txt) {
-        console.log(txt[t]);
         for (const r in txt[t]) {
           if (txt[t][r].includes("v=DMARC1")) {
             dmarc = txt[t][r];
@@ -66,23 +65,18 @@ export class InboxHealthService {
   }
 
   //https://github.com/enbits/nodejs-dkim-dns-validator/blob/master/dkimValidator.js
-
   async lookupDKIM(email: string, dkimDomain) {
     const domainParts = splitEmailDomain(email);
     try {
       if (!domainParts) return { exists: false };
-      const txt = await resolveTxtAsync(`${dkimDomain}`);
-      console.log(JSON.stringify(txt));
-      let DKIM;
-      for (const t in txt) {
-        console.log(txt[t]);
-        for (const r in txt[t]) {
-          if (txt[t][r].includes("v=DKIM1")) {
-            DKIM = txt[t][r];
-          }
-        }
-      }
-      return { exists: !!DKIM, record: DKIM };
+      const mx = await this.lookupMX(email);
+      const domainKey =
+        mx?.provider === MXHostType.GOOGLE
+          ? constructGoogleDkimSelector(domainParts)
+          : constructOutlookDkimSelector(domainParts);
+      const txt = await resolveTxtAsync(`${domainKey}`);
+      const dkimValidation = validateDkim(txt);
+      return { exists: dkimValidation.result, record: dkimValidation.dkimRecord };
     } catch (error) {
       console.info("No DKIM Found", error);
       return { exists: false };
@@ -112,3 +106,20 @@ export class InboxHealthService {
     return domainAge;
   }
 }
+
+// (async () => {
+//   const inboxHealthService = new InboxHealthService();
+//   const email = "dan@chatkick.com";
+//   const mx = await inboxHealthService.lookupMX(email);
+//   console.log(mx);
+//   const txt = await inboxHealthService.lookupTxt(email);
+//   console.log(txt);
+//   const dmarc = await inboxHealthService.lookupDMARC(email);
+//   console.log(dmarc);
+//   const dkim = await inboxHealthService.lookupDKIM(email, "google._domainkey.chatkick.com");
+//   console.log(dkim);
+//   const ssl = await inboxHealthService.checkSSL(email);
+//   console.log(ssl);
+//   const domainAge = await inboxHealthService.domainAge(email);
+//   console.log(domainAge);
+// })();

@@ -46,7 +46,7 @@ async function checkSpamhaus(ip: string) {
 
 async function resolveDomainToIpAndCheck(domain) {
   try {
-    const address = await lookupAsync(domain);
+    const address = await lookupAsync(domain, { family: 4 });
     console.log(`Resolved IP for ${domain}: ${address.address}`);
     return await checkSpamhaus(address.address);
   } catch (error) {
