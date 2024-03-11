@@ -1,7 +1,7 @@
 import { DomainParts } from "src/types/domain";
 
 //parses TXT record into an array
-var buildItemsArray = (item) => {
+const buildItemsArray = (item) => {
   var splittedItem = item.trim().split("=");
   var itemKey = splittedItem[0];
   var itemValue = splittedItem[1];
@@ -70,7 +70,11 @@ export function constructGoogleDkimSelector(domain: DomainParts) {
   const d = domain.sub ? `${domain.sub}.${domain.domain}` : domain.domain;
   return `google._domainkey.${d}`;
 }
-
+/**
+ *
+ * @param domain
+ * @returns
+ */
 export function constructOutlookDkimSelector(domain: DomainParts) {
   const d = domain.sub ? `${domain.sub}.${domain.domain}` : domain.domain;
   return `selector1._domainkey.${d}`;
