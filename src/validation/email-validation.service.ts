@@ -1,4 +1,4 @@
-import MailValidatorResponse, { MailBoxCanReceiveStatus } from "../types/mail-validator-response";
+import { MailBoxCanReceiveStatus, MailValidatorResponse } from "../types/mail-validator-response";
 import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../util/helpers";
 import { DomainParts } from "../types/domain";
 import { NeverBounceService, NeverBounceFlagTypes } from "./bounce-verification.service";

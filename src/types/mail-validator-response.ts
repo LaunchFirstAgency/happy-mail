@@ -8,7 +8,7 @@ export enum MailBoxCanReceiveStatus {
   UNSAFE = "UNSAFE",
   HIGH_RISK = "HIGH_RISK",
 }
-type MailValidatorResponse = {
+export type MailValidatorResponse = {
   email: string;
   normalizedEmail: string | false;
   domain: DomainParts | false;
@@ -18,5 +18,3 @@ type MailValidatorResponse = {
   provider: MXHostType;
   type: EmailType;
 };
-
-export default MailValidatorResponse;

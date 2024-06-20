@@ -6,7 +6,7 @@ export enum EmailType {
   EDUCATION = "EDUCATION",
 }
 
-export default class Email {
+export type Email = {
   email: string;
   type: EmailType;
-}
+};
