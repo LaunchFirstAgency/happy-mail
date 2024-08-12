@@ -194,7 +194,7 @@ export class EmailValidationService {
 //todo: if mx fails, maybe reverse dns to mail server to ensure its live, check if a single stage passed, and mark grey
 
 // (async () => {
-//   const email = "dan@d.com";
+//   const email = "dan@chatkick.com";
 //   const service = new EmailValidationService();
 //   const result = await service.validate(email);
 //   const lists = await checkSpamList("74.105.21.182");

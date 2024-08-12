@@ -47,7 +47,7 @@ const SMTP_FAIL = "550"; //TODO: other failure codes
 export class EmailVerificationService implements IEmailVerificationService {
   protected readonly defaultOptions: EmailVerificationOptions = {
     port: 25,
-    sender: "josh@adaptalent.com",
+    sender: "user@example.com",
     timeout: 0,
     fqdn: "mail.example.org",
     ignore: false,
@@ -123,7 +123,7 @@ export class EmailVerificationService implements IEmailVerificationService {
   private async beginSMTPQueries(email: string, smtpServer: string, options: EmailVerificationOptions): Promise<any> {
     return new Promise((resolve, reject) => {
       //force use of ipv4
-      const socket = createConnection({ port: options.port ?? 25, host: smtpServer, family: 4 });
+      const socket = createConnection({ port: options.port ?? 25, host: smtpServer, autoSelectFamily: true });
       let response = "";
       let stage = 0;
       let success = false;
