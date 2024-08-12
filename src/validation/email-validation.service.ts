@@ -42,15 +42,19 @@ export class EmailValidationService {
       const isAllowableDomain = this.isDomainAllowed(email);
       const canReceiveEmails = await this.bounceCheck(normalized);
       const emailType = this.getEmailType(email, domainParts);
+      const likelyRandom = this.isLikelyRandomEmail(email);
       return {
         email: email,
         normalizedEmail: normalized,
         domain: domainParts,
-        validSyntax: isValid,
-        canReceive: canReceiveEmails,
-        disposableDomain: !isAllowableDomain,
         provider: provider,
         type: provider === MXHostType.UNKNOWN ? EmailType.UNKNOWN : emailType,
+        risks: {
+          validSyntax: isValid,
+          canReceive: canReceiveEmails,
+          disposableDomain: !isAllowableDomain,
+          likelyRandomlyGenerated: likelyRandom,
+        },
       };
     } catch (error) {
       console.error("Failed to validate email", error);
@@ -145,6 +149,44 @@ export class EmailValidationService {
     //todo: see if support in name
 
     return EmailType.BUSINESS;
+  }
+
+  isLikelyRandomEmail(email: string): boolean {
+    // Split the email into local part and domain
+    const [localPart, domain] = email.split("@");
+
+    // Function to calculate entropy (randomness) of a string
+    const calculateEntropy = (str: string): number => {
+      const len = str.length;
+      const frequencies: { [char: string]: number } = {};
+
+      for (const char of str) {
+        frequencies[char] = (frequencies[char] || 0) + 1;
+      }
+
+      return Object.values(frequencies).reduce((entropy, freq) => {
+        const p = freq / len;
+        return entropy - p * Math.log2(p);
+      }, 0);
+    };
+
+    // Check the entropy of the local part
+    const localPartEntropy = calculateEntropy(localPart);
+
+    // Define thresholds
+    const entropyThreshold = 4.5; // Adjust this value as needed
+    const minLength = 8; // Minimum length to consider for randomness check
+
+    // Check if the local part is long enough and has high entropy
+    if (localPart.length >= minLength && localPartEntropy > entropyThreshold) {
+      return true;
+    }
+
+    // Additional checks
+    const hasExcessiveNumbers = /\d{5,}/.test(localPart);
+    const hasLongConsecutiveConsonants = /[bcdfghjklmnpqrstvwxyz]{5,}/i.test(localPart);
+
+    return hasExcessiveNumbers || hasLongConsecutiveConsonants;
   }
 }
 

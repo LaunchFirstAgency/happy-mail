@@ -12,9 +12,12 @@ export type MailValidatorResponse = {
   email: string;
   normalizedEmail: string | false;
   domain: DomainParts | false;
-  validSyntax: boolean;
-  disposableDomain: boolean;
-  canReceive: MailBoxCanReceiveStatus;
   provider: MXHostType;
   type: EmailType;
+  risks: {
+    validSyntax: boolean;
+    disposableDomain: boolean;
+    canReceive: MailBoxCanReceiveStatus;
+    likelyRandomlyGenerated: boolean;
+  };
 };
