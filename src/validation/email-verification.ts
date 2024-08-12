@@ -21,14 +21,12 @@ import { EmailVerificationResponse, IEmailVerificationService } from "./email-va
     ignore: 
    }
  */
-type EmailVerificationOptions = {
-  port?: number;
-  sender?: string;
-  timeout?: number;
-  fqdn?: string;
-  ignore?: boolean | string; //set an ending response code integer to ignore, such as 450 for greylisted emails
-  dns?: string | string[];
-};
+
+// Define constants for SMTP response codes
+const SMTP_READY = "220";
+const SMTP_OK = "250";
+const SMTP_FAIL = "550"; //TODO: other failure codes
+
 export enum EmailVerificationInfoCodes {
   FinishedVerification = 1,
   InvalidEmailStructure = 2,
@@ -37,21 +35,29 @@ export enum EmailVerificationInfoCodes {
   DomainNotFound = 5,
   SMTPConnectionError = 6,
   InvalidPort = 7,
+  DNSOnlyVerification = 8,
 }
 
-// Define constants for SMTP response codes
-const SMTP_READY = "220";
-const SMTP_OK = "250";
-const SMTP_FAIL = "550"; //TODO: other failure codes
+type EmailVerificationOptions = {
+  ports?: number[];
+  sender?: string;
+  timeout?: number;
+  fqdn?: string;
+  ignore?: boolean | string;
+  dns?: string | string[];
+  dnsOnly?: boolean;
+};
 
 export class EmailVerificationService implements IEmailVerificationService {
   protected readonly defaultOptions: EmailVerificationOptions = {
-    port: 25,
+    ports: [25, 465, 587], // Try submission and SMTPS ports first
     sender: "user@example.com",
-    timeout: 0,
+    timeout: 10000, // 10 seconds timeout
     fqdn: "mail.example.org",
     ignore: false,
+    dnsOnly: false,
   };
+
   constructor() {}
 
   async verify(
@@ -65,14 +71,6 @@ export class EmailVerificationService implements IEmailVerificationService {
         info: "Invalid Email Structure",
         addr: email,
         code: EmailVerificationInfoCodes.InvalidEmailStructure,
-      };
-    }
-    if (options.port && !checkPort(options.port)) {
-      return {
-        success: false,
-        info: "Invalid MX Port",
-        addr: email,
-        code: EmailVerificationInfoCodes.InvalidPort,
       };
     }
 
@@ -91,6 +89,16 @@ export class EmailVerificationService implements IEmailVerificationService {
         return { success: false, addr: email, info: "No MX Records", code: EmailVerificationInfoCodes.NoMxRecords };
       }
 
+      // If dnsOnly option is set, return success if MX records exist
+      if (opts.dnsOnly) {
+        return {
+          success: true,
+          addr: email,
+          info: "MX Records found (DNS-only check)",
+          code: EmailVerificationInfoCodes.DNSOnlyVerification,
+        };
+      }
+
       // Sort MX records by priority in descending order
       addresses.sort((a, b) => b.priority - a.priority);
 
@@ -107,20 +115,28 @@ export class EmailVerificationService implements IEmailVerificationService {
       const currentMxRecord = addresses[mxRecordsIndex];
       console.info(`Attempting connection to ${currentMxRecord.exchange} with priority ${currentMxRecord.priority}`);
 
-      try {
-        const smtpResult = await this.beginSMTPQueries(email, currentMxRecord.exchange, options);
-        // If the SMTP query was successful, return the result
-        return smtpResult;
-      } catch (smtpError) {
-        console.error(`Error connecting to ${currentMxRecord.exchange}: ${smtpError.message}`);
-        // Recursively try the next MX record
-        return this.verify(email, options, mxRecordsIndex + 1);
+      for (const port of opts.ports ?? []) {
+        try {
+          const smtpResult = await this.beginSMTPQueries(email, currentMxRecord.exchange, { ...opts, port });
+          // If the SMTP query was successful, return the result
+          return smtpResult;
+        } catch (smtpError) {
+          console.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${smtpError.message}`);
+          // Continue to the next port
+        }
       }
+
+      // If all ports failed, try the next MX record
+      return this.verify(email, opts, mxRecordsIndex + 1);
     } catch (err) {
       return { success: false, addr: email, info: "Domain not found", code: EmailVerificationInfoCodes.DomainNotFound };
     }
   }
-  private async beginSMTPQueries(email: string, smtpServer: string, options: EmailVerificationOptions): Promise<any> {
+  private async beginSMTPQueries(
+    email: string,
+    smtpServer: string,
+    options: EmailVerificationOptions & { port: number },
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       //force use of ipv4
       const socket = createConnection({ port: options.port ?? 25, host: smtpServer, autoSelectFamily: true });
