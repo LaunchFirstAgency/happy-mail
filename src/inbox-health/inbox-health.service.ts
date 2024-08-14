@@ -1,7 +1,7 @@
 import { resolveTxt } from "node:dns";
 import { promisify } from "node:util";
 import { EmailValidationService } from "@/validation/email-validation.service";
-import { sslChecker, whois, splitEmailDomain, resolveMxRecords } from "@/util";
+import { checkSSLCertificate, whois, splitEmailDomain, resolveMxRecords } from "@/util";
 import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "@/inbox-health/dkim";
 import { MXHostType } from "@/types/mx-host";
 
@@ -82,7 +82,7 @@ export class InboxHealthService {
 
     if (!domainParts) return { exists: false };
     try {
-      const getSslDetails = await sslChecker(domainParts.domain);
+      const getSslDetails = await checkSSLCertificate(domainParts.domain);
       return getSslDetails;
     } catch (error) {
       console.warn("No SSL", email);

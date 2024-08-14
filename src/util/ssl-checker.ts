@@ -1,15 +1,12 @@
-//https://raw.githubusercontent.com/dyaa/ssl-checker/master/src/index.ts
-import * as http from "node:http";
-import * as https from "node:https";
-import type { TLSSocket } from "node:tls";
-import { checkPort } from "@/util/mx";
+import { connect } from "node:tls";
 
-export interface IResolvedValues {
+export interface CertificateInfo {
   valid: boolean;
+  issuer: string;
+  subject: string;
   validFrom: string;
   validTo: string;
   daysRemaining: number;
-  validFor: string[];
 }
 
 export const getDaysBetween = (validFrom: Date, validTo: Date): number =>
@@ -32,68 +29,54 @@ export const getDaysRemaining = (validFrom: Date, validTo: Date): number => {
   return daysRemaining;
 };
 
-const DEFAULT_OPTIONS: Partial<https.RequestOptions> = {
-  agent: new https.Agent({
-    maxCachedSessions: 0,
-  }),
-  method: "HEAD",
-  port: 443,
-  rejectUnauthorized: false,
-  timeout: 5000,
-};
+export async function checkSSLCertificate(domain: string): Promise<CertificateInfo> {
+  return new Promise((resolve, reject) => {
+    const socket = connect({
+      host: domain,
+      port: 443,
+      rejectUnauthorized: false, // Allow self-signed certificates
+    });
 
-export const sslChecker = (host: string, options: Partial<https.RequestOptions> = {}): Promise<IResolvedValues> =>
-  new Promise((resolve, reject) => {
-    options = Object.assign({}, DEFAULT_OPTIONS, options);
+    socket.on("secureConnect", () => {
+      const cert = socket.getPeerCertificate();
 
-    if (!checkPort(options.port)) {
-      reject(Error("Invalid port"));
-      return;
-    }
+      if (cert) {
+        const now = new Date();
+        const validFrom = new Date(cert.valid_from);
+        const validTo = new Date(cert.valid_to);
+        const daysRemaining = Math.ceil((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-    try {
-      const req = https.request({ host, ...options }, (res: http.IncomingMessage) => {
-        const { valid_from, valid_to, subjectaltname } = (res.socket as TLSSocket).getPeerCertificate();
-
-        if (!valid_from || !valid_to || !subjectaltname) {
-          reject(new Error("No certificate"));
-          return;
-        }
-
-        const validTo = new Date(valid_to);
-        const validFor = subjectaltname.replace(/DNS:|IP Address:/g, "").split(", ");
-
-        resolve({
-          daysRemaining: getDaysRemaining(new Date(), validTo),
-          valid: ((res.socket as { authorized?: boolean }).authorized as boolean) || false,
-          validFrom: new Date(valid_from).toISOString(),
+        const certInfo: CertificateInfo = {
+          valid: socket.authorized,
+          issuer: cert.issuer.O,
+          subject: cert.subject.CN,
+          validFrom: validFrom.toISOString(),
           validTo: validTo.toISOString(),
-          validFor,
-        });
-      });
+          daysRemaining: daysRemaining,
+        };
 
-      req.on("error", reject);
-      req.on("timeout", () => {
-        req.destroy();
-        reject(new Error("Timed Out"));
-      });
-      req.end();
-    } catch (e) {
-      reject(e);
-    }
+        resolve(certInfo);
+      } else {
+        reject(new Error("No certificate information available"));
+      }
+
+      socket.end();
+    });
+
+    socket.on("error", (error) => {
+      reject(error);
+    });
   });
+}
 
 // (() => {
-//   const host = "chatkick.com";
-//   sslChecker(host)
-//     .then((data) => {
-//       console.log(`Certificate for ${host} is ${data.valid ? "valid" : "invalid"}`);
-//       console.log(`Valid from: ${data.validFrom}`);
-//       console.log(`Valid to: ${data.validTo}`);
-//       console.log(`Days remaining: ${data.daysRemaining}`);
-//       console.log(`Valid for: ${data.validFor.join(", ")}`);
+//   const domain = "example.com";
+//   checkSSLCertificate(domain)
+//     .then((certInfo) => {
+//       console.log("SSL Certificate Information:");
+//       console.log(JSON.stringify(certInfo, null, 2));
 //     })
 //     .catch((error) => {
-//       console.error("Error:", error);
+//       console.error("Error checking SSL certificate:", error.message);
 //     });
 // })();
