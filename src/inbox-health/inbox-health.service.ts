@@ -9,6 +9,8 @@ import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim
 import { MXHostType } from "../types/mx-host";
 
 const resolveTxtAsync = promisify(resolveTxt);
+export type RecordLookup = { exists: boolean; records: string | string[] | null };
+
 export class InboxHealthService {
   private emailValidationService: EmailValidationService;
   constructor() {
@@ -16,36 +18,31 @@ export class InboxHealthService {
   }
   async lookupMX(email: string) {
     const domainParts = splitEmailDomain(email);
-    if (!domainParts) return;
+    if (!domainParts) return { exists: false, records: null };
     const mx = await resolveMxRecords(domainParts.domain);
     const mxProvider = await this.emailValidationService.getMXHostByDomain(domainParts);
 
-    return { exists: !!mx, provider: mxProvider };
+    return { exists: !!mx, records: mx, provider: mxProvider };
   }
 
-  async lookupTxt(email: string) {
+  async lookupSpf(email: string): Promise<RecordLookup> {
     const domainParts = splitEmailDomain(email);
-    if (!domainParts) return;
+    if (!domainParts) return { exists: false, records: null };
     const txt = await resolveTxtAsync(domainParts.domain);
-    console.log(txt);
-    let dmarc: string | null = null;
     let spf: string | null = null;
     for (const t in txt) {
       for (const r in txt[t]) {
-        if (txt[t][r].includes("v=DMARC1")) {
-          dmarc = txt[t][r];
-        }
         if (txt[t][r].includes("v=spf1")) {
           spf = txt[t][r];
         }
       }
     }
-    return { exists: !!spf, record: spf } as any;
+    return { exists: !!spf, records: spf };
   }
 
-  async lookupDMARC(email: string) {
+  async lookupDMARC(email: string): Promise<RecordLookup> {
     const domainParts = splitEmailDomain(email);
-    if (!domainParts) return;
+    if (!domainParts) return { exists: false, records: null };
     try {
       const txt = await resolveTxtAsync(`_dmarc.${domainParts.domain}`);
       let dmarc: string | null = null;
@@ -57,18 +54,18 @@ export class InboxHealthService {
         }
       }
 
-      return { exists: !!dmarc, record: dmarc };
+      return { exists: !!dmarc, records: dmarc };
     } catch (error) {
       console.info("No DMARC Found", error);
-      return { exists: false };
+      return { exists: false, records: null };
     }
   }
 
   //https://github.com/enbits/nodejs-dkim-dns-validator/blob/master/dkimValidator.js
-  async lookupDKIM(email: string, dkimDomain) {
+  async lookupDKIM(email: string, dkimDomain): Promise<RecordLookup> {
     const domainParts = splitEmailDomain(email);
     try {
-      if (!domainParts) return { exists: false };
+      if (!domainParts) return { exists: false, records: null };
       const mx = await this.lookupMX(email);
       const domainKey =
         mx?.provider === MXHostType.GOOGLE
@@ -76,10 +73,10 @@ export class InboxHealthService {
           : constructOutlookDkimSelector(domainParts);
       const txt = await resolveTxtAsync(`${domainKey}`);
       const dkimValidation = validateDkim(txt);
-      return { exists: dkimValidation.result, record: dkimValidation.dkimRecord };
+      return { exists: dkimValidation.result, records: dkimValidation.dkimRecord };
     } catch (error) {
       console.info("No DKIM Found", error);
-      return { exists: false };
+      return { exists: false, records: null };
     }
   }
 
