@@ -96,14 +96,20 @@ export class InboxHealthService {
     }
   }
 
-  async domainAge(email: string) {
-    const domainParts = splitEmailDomain(email);
-
-    if (!domainParts) return { exists: false };
-
-    const domainAge = await whois(domainParts.domain);
-
-    return domainAge;
+  /**
+   * Not Yet Implemented
+   * @param domain
+   */
+  async checkSecurityHeaders(domain: string) {
+    throw new Error("Method not implemented.");
+    /**
+     * {
+          'Strict-Transport-Security': headers['strict-transport-security'] || 'Not set',
+          'X-Frame-Options': headers['x-frame-options'] || 'Not set',
+          'X-XSS-Protection': headers['x-xss-protection'] || 'Not set',
+          'X-Content-Type-Options': headers['x-content-type-options'] || 'Not set'
+        }
+     */
   }
 }
 
