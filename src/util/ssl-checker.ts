@@ -1,8 +1,8 @@
 //https://raw.githubusercontent.com/dyaa/ssl-checker/master/src/index.ts
-import * as http from "http";
-import * as https from "https";
-import type { TLSSocket } from "tls";
-import { checkPort } from "./mx";
+import * as http from "node:http";
+import * as https from "node:https";
+import type { TLSSocket } from "node:tls";
+import { checkPort } from "@/util/mx";
 
 export interface IResolvedValues {
   valid: boolean;

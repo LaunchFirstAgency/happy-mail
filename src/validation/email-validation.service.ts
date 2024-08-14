@@ -1,12 +1,8 @@
-import { MailBoxCanReceiveStatus, MailValidatorResponse } from "../types/mail-validator-response";
-import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../util/helpers";
-import { DomainParts } from "../types/domain";
-import { NeverBounceService, NeverBounceFlagTypes } from "./bounce-verification.service";
-import { EmailType } from "../types/email";
-import { MXHostType } from "../types/mx-host";
-import { lowestPriorityMxRecord, resolveMxRecords } from "../util/mx";
-import { EmailVerificationInfoCodes, EmailVerificationService } from "./email-verification";
-import { checkSpamList } from ".";
+import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "@/util/helpers";
+import { type DomainParts, MailBoxCanReceiveStatus, MailValidatorResponse, EmailType, MXHostType } from "@/types";
+import { NeverBounceService, NeverBounceFlagTypes } from "@/validation/bounce-verification.service";
+import { lowestPriorityMxRecord, resolveMxRecords } from "@/util/mx";
+import { EmailVerificationInfoCodes, EmailVerificationService } from "@/validation/email-verification";
 
 const DISPOSABLE_DOMAINS = require("./data/disposable-email-domains.json");
 const WILDCARD_DISPOSABLE_DOMAINS = require("./data/wildcard-disposable-email-domains.json");

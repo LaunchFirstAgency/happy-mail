@@ -1,8 +1,7 @@
 import isEmail from "validator/lib/isEmail";
 import normalizeEmail from "validator/lib/normalizeEmail";
 import parser from "tld-extract";
-import { DomainParts } from "../types/domain";
-import { MXHostType } from "../types/mx-host";
+import { type DomainParts, MXHostType } from "@/types";
 
 export function isValidEmail(email: string): boolean {
   return !!email && isEmail(email);

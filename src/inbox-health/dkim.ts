@@ -1,4 +1,4 @@
-import { DomainParts } from "src/types/domain";
+import type { DomainParts } from "@/types";
 
 //parses TXT record into an array
 const buildItemsArray = (item) => {

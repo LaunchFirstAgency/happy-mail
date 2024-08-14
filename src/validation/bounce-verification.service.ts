@@ -1,6 +1,6 @@
 import got from "got";
-import { EmailVerificationResponse, IEmailVerificationService } from "./email-validation.service";
-import { EmailVerificationInfoCodes } from "./email-verification";
+import { EmailVerificationResponse, IEmailVerificationService } from "@/validation/email-validation.service";
+import { EmailVerificationInfoCodes } from "@/validation/email-verification";
 
 export class NeverBounceService implements IEmailVerificationService {
   protected readonly NEVER_BOUNCE_API_KEY: string = process.env.NEVER_BOUNCE_API_KEY ?? "";

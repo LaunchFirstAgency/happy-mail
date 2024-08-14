@@ -9,11 +9,14 @@
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "outDir": "dist",
+    "forceConsistentCasingInFileNames": true,
+    /* Path Aliases */
     "baseUrl": ".",
-    "rootDir": ".",
-    "forceConsistentCasingInFileNames": true
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "files": ["src/index.ts"],
 
+  "files": ["src/index.ts"],
   "lib": ["es2021"]
 }

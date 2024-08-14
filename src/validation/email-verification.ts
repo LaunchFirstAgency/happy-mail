@@ -1,8 +1,7 @@
 import { setServers } from "dns";
 import { createConnection } from "net";
-import { checkPort, resolveMxRecords } from "../util/mx";
-import { isValidEmail } from "../util/helpers";
-import { EmailVerificationResponse, IEmailVerificationService } from "./email-validation.service";
+import { resolveMxRecords, isValidEmail } from "@/util";
+import { EmailVerificationResponse, IEmailVerificationService } from "@/validation/email-validation.service";
 
 /**
  *

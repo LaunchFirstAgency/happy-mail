@@ -1,9 +1,9 @@
 import { resolveTxt } from "node:dns";
 import { promisify } from "node:util";
-import { EmailValidationService } from "../validation/email-validation.service";
-import { sslChecker, whois, splitEmailDomain, resolveMxRecords } from "../util";
-import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "./dkim";
-import { MXHostType } from "../types/mx-host";
+import { EmailValidationService } from "@/validation/email-validation.service";
+import { sslChecker, whois, splitEmailDomain, resolveMxRecords } from "@/util";
+import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "@/inbox-health/dkim";
+import { MXHostType } from "@/types/mx-host";
 
 const resolveTxtAsync = promisify(resolveTxt);
 export type RecordLookup = { exists: boolean; records: string | string[] | null };
