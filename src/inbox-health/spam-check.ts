@@ -1,5 +1,5 @@
-import { resolve4, lookup } from "dns";
-import { promisify } from "util";
+import { resolve4, lookup } from "node:dns";
+import { promisify } from "node:util";
 const resolve4Async = promisify(resolve4);
 const lookupAsync = promisify(lookup);
 const ipRegex =

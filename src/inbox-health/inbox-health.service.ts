@@ -1,10 +1,7 @@
 import { resolveTxt } from "node:dns";
 import { promisify } from "node:util";
 import { EmailValidationService } from "../validation/email-validation.service";
-import sslChecker from "../util/ssl-checker";
-import { whois } from "../util/domain-expiry";
-import { splitEmailDomain } from "../util/helpers";
-import { resolveMxRecords } from "../util/mx";
+import { sslChecker, whois, splitEmailDomain, resolveMxRecords } from "../util";
 import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "./dkim";
 import { MXHostType } from "../types/mx-host";
 
@@ -109,7 +106,7 @@ export class InboxHealthService {
 //   const email = "dan@chatkick.com";
 //   const mx = await inboxHealthService.lookupMX(email);
 //   console.log(mx);
-//   const txt = await inboxHealthService.lookupTxt(email);
+//   const txt = await inboxHealthService.lookupSpf(email);
 //   console.log(txt);
 //   const dmarc = await inboxHealthService.lookupDMARC(email);
 //   console.log(dmarc);

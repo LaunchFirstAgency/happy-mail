@@ -42,7 +42,7 @@ const DEFAULT_OPTIONS: Partial<https.RequestOptions> = {
   timeout: 5000,
 };
 
-const sslChecker = (host: string, options: Partial<https.RequestOptions> = {}): Promise<IResolvedValues> =>
+export const sslChecker = (host: string, options: Partial<https.RequestOptions> = {}): Promise<IResolvedValues> =>
   new Promise((resolve, reject) => {
     options = Object.assign({}, DEFAULT_OPTIONS, options);
 
@@ -83,4 +83,17 @@ const sslChecker = (host: string, options: Partial<https.RequestOptions> = {}): 
     }
   });
 
-export default sslChecker;
+// (() => {
+//   const host = "chatkick.com";
+//   sslChecker(host)
+//     .then((data) => {
+//       console.log(`Certificate for ${host} is ${data.valid ? "valid" : "invalid"}`);
+//       console.log(`Valid from: ${data.validFrom}`);
+//       console.log(`Valid to: ${data.validTo}`);
+//       console.log(`Days remaining: ${data.daysRemaining}`);
+//       console.log(`Valid for: ${data.validFor.join(", ")}`);
+//     })
+//     .catch((error) => {
+//       console.error("Error:", error);
+//     });
+// })();
