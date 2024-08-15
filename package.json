@@ -19,7 +19,7 @@
     "npm": ">=8.1"
   },
   "dependencies": {
-    "got": "^11.8.5",
+    "got": "^14.4.2",
     "lodash": "4.17.21",
     "tld-extract": "2.1.0",
     "validator": "13.11.0"
