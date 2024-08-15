@@ -1,6 +1,6 @@
 {
   "name": "@launchfirstagency/happy-mail",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Email verification and validation to make you smile",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
