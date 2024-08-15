@@ -1,7 +1,12 @@
-import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "@/util/helpers";
+import {
+  isValidEmail,
+  normalizeEmailAddress,
+  splitEmailDomain,
+  lowestPriorityMxRecord,
+  resolveMxRecords,
+} from "@/util";
 import { type DomainParts, MailBoxCanReceiveStatus, MailValidatorResponse, EmailType, MXHostType } from "@/types";
 import { NeverBounceService, NeverBounceFlagTypes } from "@/validation/bounce-verification.service";
-import { lowestPriorityMxRecord, resolveMxRecords } from "@/util/mx";
 import { EmailVerificationInfoCodes, EmailVerificationService } from "@/validation/email-verification";
 
 const DISPOSABLE_DOMAINS = require("./data/disposable-email-domains.json");
@@ -193,7 +198,6 @@ export class EmailValidationService {
 //   const email = "dan@chatkick.com";
 //   const service = new EmailValidationService();
 //   const result = await service.validate(email);
-//   const lists = await checkSpamList("74.105.21.182");
+//   //const lists = await checkSpamList("74.105.21.182");
 //   console.log(result);
-//   console.log(lists);
 // })();
