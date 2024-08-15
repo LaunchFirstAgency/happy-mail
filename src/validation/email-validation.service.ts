@@ -28,7 +28,7 @@ export class EmailValidationService {
       : new EmailVerificationService(); //todo: probably make this default, and waterfall?
   }
 
-  async validate(email: string): Promise<MailValidatorResponse> {
+  async validate(email: string, skipBounceCheck = false): Promise<MailValidatorResponse> {
     try {
       const isValid = isValidEmail(email);
       const domainParts = splitEmailDomain(email);
@@ -36,7 +36,7 @@ export class EmailValidationService {
       const normalized = normalizeEmailAddress(email, provider);
 
       const isAllowableDomain = this.isDomainAllowed(email);
-      const canReceiveEmails = await this.bounceCheck(normalized);
+      const canReceiveEmails = skipBounceCheck ? MailBoxCanReceiveStatus.UNKNOWN : await this.bounceCheck(normalized);
       const emailType = this.getEmailType(email, domainParts);
       const likelyRandom = this.isLikelyRandomEmail(email);
       return {
