@@ -68,15 +68,3 @@ export async function checkSSLCertificate(domain: string): Promise<CertificateIn
     });
   });
 }
-
-// (() => {
-//   const domain = "example.com";
-//   checkSSLCertificate(domain)
-//     .then((certInfo) => {
-//       console.log("SSL Certificate Information:");
-//       console.log(JSON.stringify(certInfo, null, 2));
-//     })
-//     .catch((error) => {
-//       console.error("Error checking SSL certificate:", error.message);
-//     });
-// })();

@@ -82,6 +82,7 @@ export class EmailVerificationService implements IEmailVerificationService {
         success: false,
         info: "Invalid Email Structure",
         addr: email,
+        result: "invalid",
         code: EmailVerificationInfoCodes.InvalidEmailStructure,
       };
     }
@@ -98,7 +99,13 @@ export class EmailVerificationService implements IEmailVerificationService {
       const addresses = await resolveMxRecords(domain);
 
       if (addresses.length === 0) {
-        return { success: false, addr: email, info: "No MX Records", code: EmailVerificationInfoCodes.NoMxRecords };
+        return {
+          success: false,
+          addr: email,
+          info: "No MX Records",
+          result: "invalid",
+          code: EmailVerificationInfoCodes.NoMxRecords,
+        };
       }
 
       // If dnsOnly option is set, return success if MX records exist
@@ -107,6 +114,7 @@ export class EmailVerificationService implements IEmailVerificationService {
           success: true,
           addr: email,
           info: "MX Records found (DNS-only check)",
+          result: "unknown",
           code: EmailVerificationInfoCodes.DNSOnlyVerification,
         };
       }
@@ -120,6 +128,7 @@ export class EmailVerificationService implements IEmailVerificationService {
           success: false,
           addr: email,
           info: "All MX records failed",
+          result: "unknown",
           code: EmailVerificationInfoCodes.DomainNotFound,
         };
       }
@@ -141,14 +150,20 @@ export class EmailVerificationService implements IEmailVerificationService {
       // If all ports failed, try the next MX record
       return this.verify(email, opts, mxRecordsIndex + 1);
     } catch (err) {
-      return { success: false, addr: email, info: "Domain not found", code: EmailVerificationInfoCodes.DomainNotFound };
+      return {
+        success: false,
+        addr: email,
+        info: "Domain not found",
+        result: "invalid",
+        code: EmailVerificationInfoCodes.DomainNotFound,
+      };
     }
   }
   private async beginSMTPQueries(
     email: string,
     smtpServer: string,
     options: EmailVerificationOptions & { port: number },
-  ): Promise<any> {
+  ): Promise<EmailVerificationResponse> {
     return new Promise((resolve, reject) => {
       //force use of ipv4
       const socket = createConnection({ port: options.port ?? 25, host: smtpServer, autoSelectFamily: true });
@@ -252,6 +267,7 @@ export class EmailVerificationService implements IEmailVerificationService {
           success: false,
           info: "SMTP connection error",
           addr: email,
+          result: "invalid",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
           tryagain,
         });
@@ -262,6 +278,7 @@ export class EmailVerificationService implements IEmailVerificationService {
           success,
           info: `${email} is ${success ? "a valid" : "an invalid"} address`,
           addr: email,
+          result: success ? "valid" : "invalid",
           code: EmailVerificationInfoCodes.FinishedVerification,
           tryagain,
         });
@@ -273,6 +290,7 @@ export class EmailVerificationService implements IEmailVerificationService {
           success: false,
           info: "Connection Timed Out",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionTimeout,
           tryagain,
         });
