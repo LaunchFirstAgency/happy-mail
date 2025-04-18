@@ -1,7 +1,7 @@
 import { resolveTxt } from "node:dns";
 import { promisify } from "node:util";
 import { EmailValidationService } from "@/validation/email-validation.service";
-import { checkSSLCertificate, whois, splitEmailDomain, resolveMxRecords } from "@/util";
+import { checkSSLCertificate, whois, splitEmailDomain, resolveMxRecords, Logger } from "@/util";
 import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "@/inbox-health/dkim";
 import { MXHostType } from "@/types/mx-host";
 
@@ -53,7 +53,7 @@ export class InboxHealthService {
 
       return { exists: !!dmarc, records: dmarc };
     } catch (error) {
-      console.info("No DMARC Found", error);
+      Logger.log("No DMARC Found", error);
       return { exists: false, records: null };
     }
   }
@@ -72,7 +72,7 @@ export class InboxHealthService {
       const dkimValidation = validateDkim(txt);
       return { exists: dkimValidation.result, records: dkimValidation.dkimRecord };
     } catch (error) {
-      console.info("No DKIM Found", error);
+      Logger.log("No DKIM Found", error);
       return { exists: false, records: null };
     }
   }
@@ -85,7 +85,7 @@ export class InboxHealthService {
       const getSslDetails = await checkSSLCertificate(domainParts.domain);
       return getSslDetails;
     } catch (error) {
-      console.warn("No SSL", email);
+      Logger.warn("No SSL", email);
       return { exists: false };
     }
   }
@@ -100,20 +100,3 @@ export class InboxHealthService {
     return domainAge;
   }
 }
-
-// (async () => {
-//   const inboxHealthService = new InboxHealthService();
-//   const email = "dan@chatkick.com";
-//   const mx = await inboxHealthService.lookupMX(email);
-//   console.log(mx);
-//   const txt = await inboxHealthService.lookupSpf(email);
-//   console.log(txt);
-//   const dmarc = await inboxHealthService.lookupDMARC(email);
-//   console.log(dmarc);
-//   const dkim = await inboxHealthService.lookupDKIM(email, "google._domainkey.chatkick.com");
-//   console.log(dkim);
-//   const ssl = await inboxHealthService.checkSSL(email);
-//   console.log(ssl);
-//   const domainAge = await inboxHealthService.domainAge(email);
-//   console.log(domainAge);
-// })();

@@ -1,5 +1,6 @@
 import { resolve4, lookup } from "node:dns";
 import { promisify } from "node:util";
+import { Logger } from "@/util";
 const resolve4Async = promisify(resolve4);
 const lookupAsync = promisify(lookup);
 const ipRegex =
@@ -47,11 +48,11 @@ async function checkSpamhaus(ip: string) {
 async function resolveDomainToIpAndCheck(domain) {
   try {
     const address = await lookupAsync(domain, { family: 4 });
-    console.log(`Resolved IP for ${domain}: ${address.address}`);
+    Logger.log(`Resolved IP for ${domain}: ${address.address}`);
     return await checkSpamhaus(address.address);
   } catch (error) {
     if (error) {
-      console.error(`Error resolving domain ${domain}:`, error);
+      Logger.error(`Error resolving domain ${domain}:`, error);
       return;
     }
   }
@@ -61,7 +62,7 @@ export async function checkSpamList(domainOrIp: string) {
   // Check if input is an IP or domain
   if (ipRegex.test(domainOrIp)) {
     // It's an IP address
-    console.log(`Directly checking IP: ${domainOrIp}`);
+    Logger.log(`Directly checking IP: ${domainOrIp}`);
     return await checkSpamhaus(domainOrIp);
   } else {
     // It's a domain

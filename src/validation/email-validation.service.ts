@@ -4,9 +4,11 @@ import {
   splitEmailDomain,
   lowestPriorityMxRecord,
   resolveMxRecords,
+  Logger,
+  calculateStringEntropy,
 } from "@/util";
 import { type DomainParts, MailBoxCanReceiveStatus, MailValidatorResponse, EmailType, MXHostType } from "@/types";
-import { NeverBounceService, NeverBounceFlagTypes } from "@/validation/bounce-verification.service";
+import { NeverBounceService, NeverBounceFlagTypes } from "@/validation/neverbounce-verification";
 import { EmailVerificationInfoCodes, EmailVerificationService } from "@/validation/email-verification";
 
 const DISPOSABLE_DOMAINS = require("./data/disposable-email-domains.json");
@@ -27,10 +29,19 @@ export type EmailVerificationResponse = {
 };
 export class EmailValidationService {
   private emailVerificationService: IEmailVerificationService;
-  constructor() {
-    this.emailVerificationService = process.env.NEVER_BOUNCE_API_KEY
-      ? new NeverBounceService()
-      : new EmailVerificationService(); //todo: probably make this default, and waterfall?
+
+  // Configurable thresholds for random email detection
+  public entropyThreshold = 4.5;
+  public minLengthForRandomCheck = 8;
+
+  constructor(emailVerificationService?: IEmailVerificationService) {
+    if (emailVerificationService) {
+      this.emailVerificationService = emailVerificationService;
+    } else {
+      this.emailVerificationService = process.env.NEVER_BOUNCE_API_KEY
+        ? new NeverBounceService()
+        : new EmailVerificationService();
+    }
   }
 
   async validate(email: string, skipBounceCheck = false): Promise<MailValidatorResponse> {
@@ -58,7 +69,7 @@ export class EmailValidationService {
         },
       };
     } catch (error) {
-      console.error("Failed to validate email", error);
+      Logger.error("Failed to validate email", error);
       throw error;
     }
   }
@@ -92,7 +103,7 @@ export class EmailValidationService {
       //TODO more host types
       return MXHostType.OTHER;
     } catch (error) {
-      console.error("Failed to get MX Host", error);
+      Logger.error("Failed to get MX Host", error);
       return MXHostType.UNKNOWN;
     }
   }
@@ -103,6 +114,11 @@ export class EmailValidationService {
    * @returns
    */
   isDomainAllowed(email: string): boolean {
+    // Check if email is valid first
+    if (!isValidEmail(email)) {
+      return false;
+    }
+
     const domain = email.split("@").pop();
     if (!domain || DISPOSABLE_DOMAINS.includes(domain)) {
       return false;
@@ -117,10 +133,10 @@ export class EmailValidationService {
 
   async bounceCheck(email: string): Promise<MailBoxCanReceiveStatus> {
     const bounceVerification = await this.emailVerificationService.verify(email);
-    console.log("Bounce Verification", bounceVerification);
+    Logger.log("Bounce Verification", bounceVerification);
 
     if (!bounceVerification.success) {
-      console.warn("Verification Failure");
+      Logger.warn("Verification Failure");
       return MailBoxCanReceiveStatus.UNSAFE;
     }
 
@@ -156,30 +172,11 @@ export class EmailValidationService {
     // Split the email into local part and domain
     const [localPart, domain] = email.split("@");
 
-    // Function to calculate entropy (randomness) of a string
-    const calculateEntropy = (str: string): number => {
-      const len = str.length;
-      const frequencies: { [char: string]: number } = {};
-
-      for (const char of str) {
-        frequencies[char] = (frequencies[char] || 0) + 1;
-      }
-
-      return Object.values(frequencies).reduce((entropy, freq) => {
-        const p = freq / len;
-        return entropy - p * Math.log2(p);
-      }, 0);
-    };
-
-    // Check the entropy of the local part
-    const localPartEntropy = calculateEntropy(localPart);
-
-    // Define thresholds
-    const entropyThreshold = 4.5; // Adjust this value as needed
-    const minLength = 8; // Minimum length to consider for randomness check
+    // Use the extracted entropy calculation utility
+    const localPartEntropy = calculateStringEntropy(localPart);
 
     // Check if the local part is long enough and has high entropy
-    if (localPart.length >= minLength && localPartEntropy > entropyThreshold) {
+    if (localPart.length >= this.minLengthForRandomCheck && localPartEntropy > this.entropyThreshold) {
       return true;
     }
 
