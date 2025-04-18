@@ -1,6 +1,10 @@
 {
   "name": "@launchfirstagency/happy-mail",
   "version": "0.3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/launchfirstagency/happy-mail.git"
+  },
   "description": "Email verification and validation to make you smile",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
