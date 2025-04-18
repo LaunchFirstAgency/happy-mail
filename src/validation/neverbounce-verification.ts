@@ -7,13 +7,6 @@ import { Logger } from "@/util";
  * Error types from NeverBounce API
  * @see https://developers.neverbounce.com/reference/error-handling
  */
-export enum NeverBounceErrorType {
-  GeneralFailure = "general_failure",
-  AuthFailure = "auth_failure",
-  TempUnavail = "temp_unavail",
-  ThrottleTriggered = "throttle_triggered",
-  BadReferrer = "bad_referrer",
-}
 
 /**
  * Implementation of NeverBounce email verification service
@@ -22,10 +15,13 @@ export enum NeverBounceErrorType {
 export class NeverBounceService implements IEmailVerificationService {
   protected readonly NEVER_BOUNCE_API_KEY: string = process.env.NEVER_BOUNCE_API_KEY ?? "";
 
-  constructor() {
-    if (!this.NEVER_BOUNCE_API_KEY) {
+  constructor({ apiKey }: { apiKey: string }) {
+    if (!apiKey) {
       Logger.error("NEVER_BOUNCE_API_KEY not set");
+      throw new Error("NEVER_BOUNCE_API_KEY not set");
     }
+
+    this.NEVER_BOUNCE_API_KEY = apiKey;
   }
 
   /**
@@ -71,6 +67,7 @@ export class NeverBounceService implements IEmailVerificationService {
           success: false,
           info: "Invalid API response - missing result",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       }
@@ -79,6 +76,7 @@ export class NeverBounceService implements IEmailVerificationService {
         success: true,
         info: `${response.result}${response.flags && response.flags.length ? ` - ${response.flags.join(", ")}` : ""}`,
         addr: email,
+        result: response.result,
         code: this.mapResultToCode(response.result),
       };
     } catch (error: any) {
@@ -94,6 +92,7 @@ export class NeverBounceService implements IEmailVerificationService {
             success: false,
             info: "Email too large to process",
             addr: email,
+            result: "unknown",
             code: EmailVerificationInfoCodes.SMTPConnectionError,
           };
         } else if (statusCode >= 500) {
@@ -101,6 +100,7 @@ export class NeverBounceService implements IEmailVerificationService {
             success: false,
             info: "NeverBounce service temporarily unavailable",
             addr: email,
+            result: "unknown",
             code: EmailVerificationInfoCodes.SMTPConnectionError,
           };
         } else if (statusCode === 429) {
@@ -108,6 +108,7 @@ export class NeverBounceService implements IEmailVerificationService {
             success: false,
             info: "Rate limit exceeded",
             addr: email,
+            result: "unknown",
             code: EmailVerificationInfoCodes.SMTPConnectionError,
           };
         }
@@ -117,6 +118,7 @@ export class NeverBounceService implements IEmailVerificationService {
         success: false,
         info: "Failed to verify email with NeverBounce",
         addr: email,
+        result: "unknown",
         code: EmailVerificationInfoCodes.SMTPConnectionError,
       };
     }
@@ -133,6 +135,7 @@ export class NeverBounceService implements IEmailVerificationService {
           success: false,
           info: "API authentication failure",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       case NeverBounceErrorType.ThrottleTriggered:
@@ -141,6 +144,7 @@ export class NeverBounceService implements IEmailVerificationService {
           success: false,
           info: "Rate limit exceeded",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       case NeverBounceErrorType.TempUnavail:
@@ -149,6 +153,7 @@ export class NeverBounceService implements IEmailVerificationService {
           success: false,
           info: "Service temporarily unavailable",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       case NeverBounceErrorType.BadReferrer:
@@ -157,6 +162,7 @@ export class NeverBounceService implements IEmailVerificationService {
           success: false,
           info: "API credentials referrer issue",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       default:
@@ -165,6 +171,7 @@ export class NeverBounceService implements IEmailVerificationService {
           success: false,
           info: response.message || "Unknown error occurred",
           addr: email,
+          result: "unknown",
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
     }
@@ -190,7 +197,13 @@ export class NeverBounceService implements IEmailVerificationService {
     }
   }
 }
-
+export enum NeverBounceErrorType {
+  GeneralFailure = "general_failure",
+  AuthFailure = "auth_failure",
+  TempUnavail = "temp_unavail",
+  ThrottleTriggered = "throttle_triggered",
+  BadReferrer = "bad_referrer",
+}
 interface NeverBounceResponse {
   status: "success" | NeverBounceErrorType;
   result?: NeverBounceResultType;

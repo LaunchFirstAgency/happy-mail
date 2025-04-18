@@ -80,16 +80,3 @@ export class DomainAgeChecker {
     return match ? new Date(match[1]) : null;
   }
 }
-
-// Usage example
-// async function main() {
-//   try {
-//     const domain = "example.com";
-//     const age = await DomainAgeChecker.checkDomainAge(domain);
-//     console.log(`The domain ${domain} is approximately ${age.toFixed(2)} years old`);
-//   } catch (error) {
-//     console.error("Error:", error);
-//   }
-// }
-
-// main();

@@ -70,6 +70,7 @@ export function constructGoogleDkimSelector(domain: DomainParts) {
   const d = domain.sub ? `${domain.sub}.${domain.domain}` : domain.domain;
   return `google._domainkey.${d}`;
 }
+
 /**
  *
  * @param domain

@@ -18,10 +18,11 @@ const PERSONAL_DOMAINS = require("./data/personal-email-domains.json");
 export interface IEmailVerificationService {
   verify(email: string): Promise<EmailVerificationResponse>;
 }
-
+type VerificationResult = "valid" | "invalid" | "disposable" | "catchall" | "unknown";
 //todo: consider adding detail flags like NeverBounceFlagTypes enum
 export type EmailVerificationResponse = {
   success: boolean;
+  result: VerificationResult;
   info: string;
   addr: string;
   code: EmailVerificationInfoCodes;
@@ -39,7 +40,7 @@ export class EmailValidationService {
       this.emailVerificationService = emailVerificationService;
     } else {
       this.emailVerificationService = process.env.NEVER_BOUNCE_API_KEY
-        ? new NeverBounceService()
+        ? new NeverBounceService({ apiKey: process.env.NEVER_BOUNCE_API_KEY })
         : new EmailVerificationService();
     }
   }
@@ -135,19 +136,27 @@ export class EmailValidationService {
     const bounceVerification = await this.emailVerificationService.verify(email);
     Logger.log("Bounce Verification", bounceVerification);
 
-    if (!bounceVerification.success) {
+    //completed + successful
+    if (
+      bounceVerification.success &&
+      bounceVerification.code === EmailVerificationInfoCodes.FinishedVerification &&
+      bounceVerification.result === "valid"
+    ) {
+      return MailBoxCanReceiveStatus.SAFE;
+    }
+    if (bounceVerification.result === "invalid") {
       Logger.warn("Verification Failure");
       return MailBoxCanReceiveStatus.UNSAFE;
     }
 
     //todo: add more checks for flags
     if (bounceVerification.info.includes(NeverBounceFlagTypes["spamtrap_network"])) {
+      Logger.warn("Spamtrap Network - HIGH RISK");
       return MailBoxCanReceiveStatus.HIGH_RISK;
     }
-    //completed + successful
-    return bounceVerification.success && bounceVerification.code === EmailVerificationInfoCodes.FinishedVerification
-      ? MailBoxCanReceiveStatus.SAFE
-      : MailBoxCanReceiveStatus.UNKNOWN;
+
+    //unknown/possible catchall
+    return MailBoxCanReceiveStatus.UNKNOWN;
   }
 
   /**
@@ -162,8 +171,16 @@ export class EmailValidationService {
     if (domain && PERSONAL_DOMAINS.includes(domain.domain)) {
       return EmailType.PERSONAL;
     }
+    if (domain && domain.tld === "gov") {
+      return EmailType.GOVERNMENT;
+    }
+    if (domain && domain.tld === "edu") {
+      return EmailType.EDUCATION;
+    }
 
-    //todo: see if support in name
+    if (email && email.split("@")[0].includes("support")) {
+      return EmailType.SUPPORT;
+    }
 
     return EmailType.BUSINESS;
   }
@@ -187,14 +204,3 @@ export class EmailValidationService {
     return hasExcessiveNumbers || hasLongConsecutiveConsonants;
   }
 }
-
-//todo: handle proofpoint server
-//todo: if mx fails, maybe reverse dns to mail server to ensure its live, check if a single stage passed, and mark grey
-
-// (async () => {
-//   const email = "dan@chatkick.com";
-//   const service = new EmailValidationService();
-//   const result = await service.validate(email);
-//   //const lists = await checkSpamList("74.105.21.182");
-//   console.log(result);
-// })();
