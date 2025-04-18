@@ -135,6 +135,10 @@ export class EmailValidationService {
   async bounceCheck(email: string): Promise<MailBoxCanReceiveStatus> {
     const bounceVerification = await this.emailVerificationService.verify(email);
     Logger.log("Bounce Verification", bounceVerification);
+    if (bounceVerification.info.includes(NeverBounceFlagTypes["spamtrap_network"])) {
+      Logger.warn("Spamtrap Network - HIGH RISK");
+      return MailBoxCanReceiveStatus.HIGH_RISK;
+    }
 
     //completed + successful
     if (
