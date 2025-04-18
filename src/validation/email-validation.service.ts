@@ -139,6 +139,7 @@ export class EmailValidationService {
       Logger.warn("Spamtrap Network - HIGH RISK");
       return MailBoxCanReceiveStatus.HIGH_RISK;
     }
+
     //completed + successful
     if (
       bounceVerification.success &&
@@ -153,6 +154,10 @@ export class EmailValidationService {
     }
 
     //todo: add more checks for flags
+    if (bounceVerification.info.includes(NeverBounceFlagTypes["spamtrap_network"])) {
+      Logger.warn("Spamtrap Network - HIGH RISK");
+      return MailBoxCanReceiveStatus.HIGH_RISK;
+    }
 
     //unknown/possible catchall
     return MailBoxCanReceiveStatus.UNKNOWN;
