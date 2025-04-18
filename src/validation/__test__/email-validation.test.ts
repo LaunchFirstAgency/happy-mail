@@ -77,6 +77,7 @@ describe("EmailValidationService", () => {
       mockVerificationService.verify.mockResolvedValue({
         success: true,
         info: "",
+        result: "valid",
         addr: email,
         code: EmailVerificationInfoCodes.FinishedVerification,
       });
@@ -186,6 +187,7 @@ describe("EmailValidationService", () => {
       mockVerificationService.verify.mockResolvedValue({
         success: true,
         info: "",
+        result: "valid",
         addr: email,
         code: EmailVerificationInfoCodes.FinishedVerification,
       });
@@ -200,6 +202,7 @@ describe("EmailValidationService", () => {
       mockVerificationService.verify.mockResolvedValue({
         success: true,
         info: "spamtrap_network",
+        result: "valid",
         addr: email,
         code: EmailVerificationInfoCodes.FinishedVerification,
       });
@@ -214,6 +217,7 @@ describe("EmailValidationService", () => {
       mockVerificationService.verify.mockResolvedValue({
         success: false,
         info: "Failed verification",
+        result: "invalid",
         addr: email,
         code: EmailVerificationInfoCodes.InvalidEmailStructure,
       });
