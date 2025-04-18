@@ -2,6 +2,7 @@ import isEmail from "validator/lib/isEmail";
 import normalizeEmail from "validator/lib/normalizeEmail";
 import parser from "tld-extract";
 import { type DomainParts, MXHostType } from "@/types";
+import { Logger } from "./logger";
 
 export function isValidEmail(email: string): boolean {
   return !!email && isEmail(email);
@@ -37,7 +38,7 @@ export function splitEmailDomain(email: string): DomainParts | false {
   try {
     return parser(`http://${address}`);
   } catch (error) {
-    console.error(`Invalid Domain for Email ${email}`, error);
+    Logger.error(`Invalid Domain for Email ${email}`, error);
     return false;
   }
 }

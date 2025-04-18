@@ -1,12 +1,9 @@
-// Node.js Dependencies
 import net from "node:net";
 import streamConsumers from "node:stream/consumers";
 
-// CONSTANTS
 const kDefaultSocketServer = "whois.iana.org";
 
 function* lazyParseIanaWhoisResponse(rawResponseStr: string) {
-  /** @type {string[]} */
   const lines = rawResponseStr.split(/\r?\n/);
 
   for (const line of lines) {

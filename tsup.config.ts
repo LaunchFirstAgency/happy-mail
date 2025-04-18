@@ -12,4 +12,6 @@ export default defineConfig({
   cjsInterop: true,
   clean: true,
   treeshake: true,
+  external: ["examples", "__test__"],
+  noExternal: [],
 });

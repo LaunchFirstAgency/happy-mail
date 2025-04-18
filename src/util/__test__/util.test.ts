@@ -1,8 +1,15 @@
 import { MXHostType } from "../../types/mx-host";
 import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "../helpers";
+import { Logger } from "../logger";
 import { checkPort } from "../mx";
 import { getDaysBetween, getDaysRemaining } from "../ssl-checker";
+
 describe("Util", () => {
+  // Disable logger output for tests
+  beforeAll(() => {
+    Logger.setEnabled(false);
+  });
+
   it("should be true", () => {
     expect(true).toBe(true);
   });

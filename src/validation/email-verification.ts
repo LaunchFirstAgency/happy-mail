@@ -1,6 +1,6 @@
 import { setServers } from "dns";
 import { createConnection } from "net";
-import { resolveMxRecords, isValidEmail } from "@/util";
+import { resolveMxRecords, isValidEmail, Logger } from "@/util";
 import { EmailVerificationResponse, IEmailVerificationService } from "@/validation/email-validation.service";
 
 /**
@@ -46,7 +46,20 @@ type EmailVerificationOptions = {
   dns?: string | string[];
   dnsOnly?: boolean;
 };
-
+/**
+ * Email Verification Service
+ *
+ * This service is used to verify email addresses using SMTP.
+ * It will try to connect to the email server and send a message to the email address.
+ *
+ * NOTE: Because most servers and ISPs block ports 25, 465, and 587, this service may fail/timeout.
+ * - 25: SMTP
+ * - 465: SMTPS
+ * - 587: Submission
+ *
+ * If the email address is valid, the service will return a success status.
+ * If the email address is invalid, the service will return a failure status.
+ */
 export class EmailVerificationService implements IEmailVerificationService {
   protected readonly defaultOptions: EmailVerificationOptions = {
     ports: [25, 465, 587], // Try submission and SMTPS ports first
@@ -76,10 +89,10 @@ export class EmailVerificationService implements IEmailVerificationService {
     const opts = this.optionsDefaults(options);
     if (opts.dns) this.dnsConfig(opts);
 
-    console.info("# Verifying " + email);
+    Logger.log("# Verifying " + email);
 
     const domain = email.split(/[@]/).splice(-1)[0].toLowerCase();
-    console.info("Resolving DNS... " + domain);
+    Logger.log("Resolving DNS... " + domain);
 
     try {
       const addresses = await resolveMxRecords(domain);
@@ -112,7 +125,7 @@ export class EmailVerificationService implements IEmailVerificationService {
       }
 
       const currentMxRecord = addresses[mxRecordsIndex];
-      console.info(`Attempting connection to ${currentMxRecord.exchange} with priority ${currentMxRecord.priority}`);
+      Logger.log(`Attempting connection to ${currentMxRecord.exchange} with priority ${currentMxRecord.priority}`);
 
       for (const port of opts.ports ?? []) {
         try {
@@ -120,7 +133,7 @@ export class EmailVerificationService implements IEmailVerificationService {
           // If the SMTP query was successful, return the result
           return smtpResult;
         } catch (smtpError) {
-          console.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${smtpError.message}`);
+          Logger.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${smtpError.message}`);
           // Continue to the next port
         }
       }
@@ -165,7 +178,7 @@ export class EmailVerificationService implements IEmailVerificationService {
             stage++;
           });
         } else {
-          console.log("response", response);
+          Logger.log("response", response);
           if (response.indexOf("421") > -1 || response.indexOf("450") > -1 || response.indexOf("451") > -1) {
             tryagain = true;
           }
@@ -177,7 +190,7 @@ export class EmailVerificationService implements IEmailVerificationService {
       const handleStage2 = () => {
         if (response.indexOf(SMTP_OK) > -1) {
           // MAIL Worked, now try RCPT TO
-          console.log("sending RCPT TO");
+          Logger.log("sending RCPT TO");
           sendCommand(`RCPT TO:<${email}>\r\n`, () => {
             stage++;
           });
@@ -188,9 +201,9 @@ export class EmailVerificationService implements IEmailVerificationService {
 
       // Function to handle the response after RCPT TO command
       const handleStage3 = () => {
-        console.log("sending quit", response);
+        Logger.log("sending quit", response);
         sendCommand("QUIT\r\n", () => {
-          //console.log("QUIT", response);
+          //Logger.log("QUIT", response);
           if (response.indexOf(SMTP_FAIL) > -1) {
             return (success = false);
           }
@@ -215,7 +228,7 @@ export class EmailVerificationService implements IEmailVerificationService {
       socket.on("data", (data) => {
         response += data.toString();
         const completed = response.slice(-1) === "\n";
-        console.log("completed", completed, stage);
+        Logger.log("completed", completed, stage);
         if (completed && stage <= 3) {
           switch (stage) {
             case 0:
