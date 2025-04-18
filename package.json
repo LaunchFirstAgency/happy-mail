@@ -1,6 +1,6 @@
 {
   "name": "@launchfirstagency/happy-mail",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Email verification and validation to make you smile",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -22,7 +22,7 @@
     "got": "^11.8.5",
     "lodash": "4.17.21",
     "tld-extract": "2.1.0",
-    "validator": "13.11.0"
+    "validator": "13.12.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.6.1",
