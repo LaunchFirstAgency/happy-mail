@@ -1,4 +1,3 @@
-import got from "got";
 import { EmailVerificationResponse, IEmailVerificationService } from "@/validation/email-validation.service";
 import { EmailVerificationInfoCodes } from "@/validation/email-verification";
 import { Logger } from "@/util";
@@ -36,33 +35,25 @@ export class NeverBounceService implements IEmailVerificationService {
 
       // NeverBounce supports both GET and POST with different content types
       // Using GET with application/json headers as recommended
-      const response = await got
-        .get("https://api.neverbounce.com/v4.2/single/check", {
-          searchParams: {
-            key: this.NEVER_BOUNCE_API_KEY,
-            email: encodedEmail,
-            timeout: 10, // Adding a default timeout (in seconds) for verification
-          },
+      const response = await fetch(
+        `https://api.neverbounce.com/v4.2/single/check?key=${this.NEVER_BOUNCE_API_KEY}&email=${encodedEmail}&timeout=10`,
+        {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          retry: {
-            limit: 2, // Retry up to 2 times on failure - todo: make this configurable
-            methods: ["GET"],
-            statusCodes: [408, 429, 500, 502, 503, 504], // Retry on these status codes
-          },
-        })
-        .json<NeverBounceResponse>();
+        },
+      );
 
+      const data = await response.json();
       // Check if the response indicates an error
-      if (response.status !== "success") {
-        Logger.error(`NeverBounce API error: ${response.status}`, response);
-        return this.handleErrorResponse(response, email);
+      if (response.status > 299) {
+        Logger.error(`NeverBounce API error: ${response.status}`, data);
+        return this.handleErrorResponse(data, email);
       }
 
       // Make sure result is defined before proceeding
-      if (!response.result) {
+      if (!data) {
         return {
           success: false,
           info: "Invalid API response - missing result",
@@ -74,10 +65,10 @@ export class NeverBounceService implements IEmailVerificationService {
 
       return {
         success: true,
-        info: `${response.result}${response.flags && response.flags.length ? ` - ${response.flags.join(", ")}` : ""}`,
+        info: `${data.result}${data.flags && data.flags.length ? ` - ${data.flags.join(", ")}` : ""}`,
         addr: email,
-        result: response.result,
-        code: this.mapResultToCode(response.result),
+        result: data.result,
+        code: this.mapResultToCode(data.result),
       };
     } catch (error: any) {
       // Handle HTTP errors (4xx/5xx)
