@@ -1,5 +1,6 @@
 import { Logger } from "../util";
 import { camelizeKeys, snakeizeKeys } from "../util/case-converter";
+import { NeverBounceFlagTypes, NeverBounceResultType } from "./neverbounce-verification";
 
 const NEVERBOUNCE_API_BASE = "https://api.neverbounce.com/v4" as const;
 
@@ -47,10 +48,38 @@ export interface BulkJobStatus {
 }
 
 export interface BulkJobResults {
-  total: number;
+  status: string;
+  totalResults: number;
+  totalPages: number;
+  query: {
+    jobId: number;
+    valids: number;
+    invalids: number;
+    disposables: number;
+    catchalls: number;
+    unknowns: number;
+    page: number;
+    itemsPerPage: number;
+  };
+
   results: Array<{
-    email: string;
-    verificationStatus: string;
+    data: { email: string; [key: string]: any };
+    verification: {
+      result: NeverBounceResultType;
+      flags: NeverBounceFlagTypes[];
+      suggestedCorrection: string;
+      addressInfo: {
+        originalEmail: string;
+        normalizedEmail: string;
+        addr: string;
+        alias: string;
+        host: string;
+        fqdn: string;
+        domain: string;
+        subdomain: string;
+        tld: string;
+      };
+    };
     result: string;
   }>;
 }

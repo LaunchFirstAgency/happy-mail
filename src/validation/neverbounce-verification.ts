@@ -204,7 +204,7 @@ interface NeverBounceResponse {
   message?: string; // Error message when status is not success
 }
 
-type NeverBounceResultType = "valid" | "invalid" | "disposable" | "catchall" | "unknown";
+export type NeverBounceResultType = "valid" | "invalid" | "disposable" | "catchall" | "unknown";
 
 export enum NeverBounceFlagTypes {
   "has_dns" = "has_dns",
