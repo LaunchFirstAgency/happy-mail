@@ -22,6 +22,7 @@ async function bulkVerificationExample() {
       autoStart: true,
       runSample: false,
     });
+
     console.log("Job created:", job);
 
     // Example 2: Create a bulk job with a remote URL
