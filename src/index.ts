@@ -1,4 +1,14 @@
-export * from "./inbox-health";
-export * from "./util";
-export * from "./validation";
-export * from "./types";
+import { HappyEmailClient, HappyEmailClientOptions } from "./client";
+import { MailValidatorResponse, MailBoxCanReceiveStatus, EmailType, MXHostType } from "./types";
+
+export {
+  HappyEmailClient,
+  HappyEmailClientOptions,
+  MailValidatorResponse,
+  MailBoxCanReceiveStatus,
+  EmailType,
+  MXHostType,
+};
+
+// Default export for convenience
+export default HappyEmailClient;
