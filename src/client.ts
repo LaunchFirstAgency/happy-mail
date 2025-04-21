@@ -123,7 +123,7 @@ export class HappyEmailClient {
    * @param jobId The ID of the job to check
    * @returns The job status
    */
-  async getJobStatus(jobId: string): Promise<BulkJobStatus> {
+  async getJobStatus(jobId: number): Promise<BulkJobStatus> {
     this.ensureBulkVerification();
     return this.bulkVerification!.getJobStatus(jobId);
   }
