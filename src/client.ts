@@ -5,6 +5,15 @@ import { EmailVerificationService } from "@/validation/email-verification";
 import { MailValidatorResponse } from "@/types";
 import { RecordLookup } from "@/inbox-health/inbox-health.service";
 import { Logger } from "@/util";
+import { NeverBounceBulkVerification } from "./validation/neverbounce-bulk-verification";
+import type {
+  BulkJobRequest,
+  BulkJobResponse,
+  BulkJobStatus,
+  BulkJobResults,
+  JobResultsQuery,
+  JobSearchQuery,
+} from "./validation/neverbounce-bulk-verification";
 
 /**
  * Configuration options for HappyEmailClient
@@ -28,6 +37,7 @@ export interface HappyEmailClientOptions {
 export class HappyEmailClient {
   private emailValidationService: EmailValidationService;
   private inboxHealthService: InboxHealthService;
+  private bulkVerification: NeverBounceBulkVerification | null = null;
   private options: HappyEmailClientOptions;
 
   /**
@@ -43,6 +53,8 @@ export class HappyEmailClient {
       emailVerificationService = options.emailVerificationService;
     } else if (options.neverBounceApiKey) {
       emailVerificationService = new NeverBounceService({ apiKey: options.neverBounceApiKey });
+      // Initialize bulk verification if NeverBounce API key is provided
+      this.bulkVerification = new NeverBounceBulkVerification(options.neverBounceApiKey);
     } else {
       emailVerificationService = new EmailVerificationService();
     }
@@ -63,6 +75,12 @@ export class HappyEmailClient {
     this.inboxHealthService = new InboxHealthService();
   }
 
+  private ensureBulkVerification(): void {
+    if (!this.bulkVerification) {
+      throw new Error("NeverBounce API key is required for bulk operations");
+    }
+  }
+
   /**
    * Validate an email address
    * @param email Email address to validate
@@ -70,7 +88,6 @@ export class HappyEmailClient {
    * @returns Validation response containing email details and risk assessment
    */
   async validateEmail(email: string, skipBounceCheck?: boolean): Promise<MailValidatorResponse> {
-    // Use the provided skipBounceCheck or fall back to the default option
     const shouldSkipBounceCheck =
       skipBounceCheck !== undefined ? skipBounceCheck : this.options.skipBounceCheckByDefault || false;
 
@@ -80,6 +97,83 @@ export class HappyEmailClient {
       Logger.error("Failed to validate email", error);
       throw error;
     }
+  }
+
+  /**
+   * Creates a new bulk verification job
+   * @param request The job configuration
+   * @returns The created job details
+   */
+  async createBulkJob(request: BulkJobRequest): Promise<BulkJobResponse> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.createBulkJob(request);
+  }
+
+  /**
+   * Lists all bulk verification jobs
+   * @returns Array of job statuses
+   */
+  async listJobs(): Promise<BulkJobStatus[]> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.listJobs();
+  }
+
+  /**
+   * Gets the status of a specific bulk verification job
+   * @param jobId The ID of the job to check
+   * @returns The job status
+   */
+  async getJobStatus(jobId: string): Promise<BulkJobStatus> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.getJobStatus(jobId);
+  }
+
+  /**
+   * Gets the results of a completed bulk verification job
+   * @param jobId The ID of the job
+   * @param query Optional query parameters
+   * @returns The job results
+   */
+  async getJobResults(jobId: string, query?: JobResultsQuery): Promise<BulkJobResults> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.getJobResults(jobId, query);
+  }
+
+  /**
+   * Downloads the results of a bulk verification job
+   * @param jobId The ID of the job
+   * @param query Optional query parameters
+   * @returns The job results as a Buffer
+   */
+  async downloadJobResults(jobId: string, query?: JobResultsQuery): Promise<Buffer> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.downloadJobResults(jobId, query);
+  }
+
+  /**
+   * Deletes a bulk verification job
+   * @param jobId The ID of the job to delete
+   * @returns The deletion status
+   */
+  async deleteJob(jobId: string): Promise<{ status: string }> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.deleteJob(jobId);
+  }
+
+  /**
+   * Searches for bulk verification jobs with filters
+   * @param query Search query parameters
+   * @returns Paginated search results
+   */
+  async searchJobs(query?: JobSearchQuery): Promise<{
+    totalResults: number;
+    totalPages: number;
+    currentPage: number;
+    itemsPerPage: number;
+    jobs: BulkJobStatus[];
+  }> {
+    this.ensureBulkVerification();
+    return this.bulkVerification!.searchJobs(query);
   }
 
   /**
@@ -151,5 +245,13 @@ export class HappyEmailClient {
    */
   getInboxHealthService(): InboxHealthService {
     return this.inboxHealthService;
+  }
+
+  /**
+   * Get direct access to the underlying NeverBounceBulkVerification instance
+   * @returns The NeverBounceBulkVerification instance or null if not initialized
+   */
+  getBulkVerification(): NeverBounceBulkVerification | null {
+    return this.bulkVerification;
   }
 }
