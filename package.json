@@ -1,6 +1,6 @@
 {
   "name": "@launchfirstagency/happy-mail",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/LaunchFirstAgency/happy-mail.git"
@@ -23,7 +23,6 @@
     "npm": ">=10"
   },
   "dependencies": {
-    "got": "^11.8.5",
     "lodash": "4.17.21",
     "tld-extract": "2.1.0",
     "validator": "13.15.0"
@@ -37,8 +36,8 @@
     "prettier": "^3.3.3",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
-    "tsup": "^8.0.2",
-    "typescript": "^5.3.3"
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3"
   },
   "prettier": {
     "singleQuote": false,

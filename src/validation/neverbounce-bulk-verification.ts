@@ -1,7 +1,7 @@
 import { Logger } from "../util";
 import { camelizeKeys, snakeizeKeys } from "../util/case-converter";
 
-const NEVERBOUNCE_API_BASE = "https://api.neverbounce.com/v4.2" as const;
+const NEVERBOUNCE_API_BASE = "https://api.neverbounce.com/v4" as const;
 
 export interface BulkJobRequest {
   input: string | { uid: string; email: string }[];
@@ -96,6 +96,10 @@ export class NeverBounceBulkVerification {
     };
 
     try {
+      if (method === "GET") {
+        url.search = new URLSearchParams(requestData as Record<string, string>).toString();
+      }
+
       const response = await fetch(url.toString(), {
         method,
         headers: {
@@ -103,9 +107,6 @@ export class NeverBounceBulkVerification {
           Accept: "application/json",
         },
         body: method !== "GET" ? JSON.stringify(requestData) : undefined,
-        ...(method === "GET" && {
-          search: new URLSearchParams(requestData as Record<string, string>).toString(),
-        }),
       });
 
       if (!response.ok) {
@@ -116,6 +117,7 @@ export class NeverBounceBulkVerification {
 
       // Convert response data to camelCase
       const responseData = await response.json();
+
       return camelizeKeys(responseData) as T;
     } catch (error) {
       Logger.error("Failed to make NeverBounce API request:", error);
@@ -146,7 +148,7 @@ export class NeverBounceBulkVerification {
    * @param jobId The ID of the job to check
    * @returns The job status
    */
-  async getJobStatus(jobId: string): Promise<BulkJobStatus> {
+  async getJobStatus(jobId: number): Promise<BulkJobStatus> {
     return this.makeRequest<BulkJobStatus>("/jobs/status", "GET", { jobId });
   }
 
