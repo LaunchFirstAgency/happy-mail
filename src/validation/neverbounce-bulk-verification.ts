@@ -1,7 +1,7 @@
 import { Logger } from "../util";
 import { camelizeKeys, snakeizeKeys } from "../util/case-converter";
 
-const NEVERBOUNCE_API_BASE = "https://api.neverbounce.com/v4.2";
+const NEVERBOUNCE_API_BASE = "https://api.neverbounce.com/v4.2" as const;
 
 export interface BulkJobRequest {
   input: string | { uid: string; email: string }[];
