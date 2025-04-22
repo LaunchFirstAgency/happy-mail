@@ -1,4 +1,4 @@
-import { EmailValidationService, IEmailVerificationService } from "@/validation/email-validation.service";
+import { EmailValidationService, type IEmailVerificationService } from "@/validation/email-validation.service";
 import { InboxHealthService } from "@/inbox-health/inbox-health.service";
 import { NeverBounceService } from "@/validation/neverbounce-verification";
 import { EmailVerificationService } from "@/validation/email-verification";
@@ -14,6 +14,12 @@ import type {
   JobResultsQuery,
   JobSearchQuery,
 } from "./validation/neverbounce-bulk-verification";
+import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "@/util/helpers";
+import { resolveMxRecords, checkPort, lowestPriorityMxRecord } from "@/util/mx";
+import { calculateStringEntropy } from "@/util/string-utils";
+import { checkSSLCertificate, getDaysBetween, getDaysRemaining, type CertificateInfo } from "@/util/ssl-checker";
+import { whois } from "@/util/domain-expiry";
+import { type MxRecord } from "node:dns";
 
 /**
  * Configuration options for HappyEmailClient
@@ -29,6 +35,8 @@ export interface HappyEmailClientOptions {
   entropyThreshold?: number;
   /** Minimum length for random email check (default: 8) */
   minLengthForRandomCheck?: number;
+  /** Enable or disable logging (default: true) */
+  loggingEnabled?: boolean;
 }
 
 /**
@@ -41,11 +49,80 @@ export class HappyEmailClient {
   private options: HappyEmailClientOptions;
 
   /**
+   * Static utility methods available on the client
+   */
+  /**
+   * Check if a string is a valid email address
+   */
+  static isValidEmail = isValidEmail;
+
+  /**
+   * Normalize an email address based on provider rules
+   */
+  static normalizeEmailAddress = normalizeEmailAddress;
+
+  /**
+   * Split an email domain into its component parts
+   */
+  static splitEmailDomain = splitEmailDomain;
+
+  /**
+   * Resolve MX records for a domain
+   */
+  static resolveMxRecords = resolveMxRecords;
+
+  /**
+   * Check if a port number is valid
+   */
+  static checkPort = checkPort;
+
+  /**
+   * Find the MX record with the lowest priority
+   */
+  static lowestPriorityMxRecord = lowestPriorityMxRecord;
+
+  /**
+   * Calculate the entropy (randomness) of a string
+   */
+  static calculateStringEntropy = calculateStringEntropy;
+
+  /**
+   * Check SSL certificate for a domain
+   */
+  static checkSSLCertificate = checkSSLCertificate;
+
+  /**
+   * Get days between two dates
+   */
+  static getDaysBetween = getDaysBetween;
+
+  /**
+   * Get days remaining until certificate expiry
+   */
+  static getDaysRemaining = getDaysRemaining;
+
+  /**
+   * Perform a WHOIS lookup for a domain
+   */
+  static whois = whois;
+
+  /**
+   * Enable or disable logging globally
+   * @param enabled Whether logging should be enabled
+   */
+  static setLoggingEnabled(enabled: boolean): void {
+    Logger.setEnabled(enabled);
+  }
+
+  /**
    * Create a new HappyEmailClient
    * @param options Configuration options for the client
    */
   constructor(options: HappyEmailClientOptions = {}) {
     this.options = options;
+
+    // Configure logging
+    Logger.setEnabled(options.loggingEnabled !== false); // Enable logging by default unless explicitly disabled
 
     // Initialize email verification service
     let emailVerificationService: IEmailVerificationService;
@@ -253,5 +330,13 @@ export class HappyEmailClient {
    */
   getBulkVerification(): NeverBounceBulkVerification | null {
     return this.bulkVerification;
+  }
+
+  /**
+   * Get the current logging state
+   * @returns Whether logging is currently enabled
+   */
+  isLoggingEnabled(): boolean {
+    return this.options.loggingEnabled !== false;
   }
 }
