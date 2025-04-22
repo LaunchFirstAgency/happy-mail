@@ -5,6 +5,7 @@ import { EmailVerificationService } from "@/validation/email-verification";
 import { MailValidatorResponse } from "@/types";
 import { RecordLookup } from "@/inbox-health/inbox-health.service";
 import { Logger } from "@/util";
+import { checkSpamList } from "@/inbox-health/spam-check";
 import { NeverBounceBulkVerification } from "./validation/neverbounce-bulk-verification";
 import type {
   BulkJobRequest,
@@ -105,6 +106,11 @@ export class HappyEmailClient {
    * Perform a WHOIS lookup for a domain
    */
   static whois = whois;
+
+  /**
+   * Check if an email is on a spam list
+   */
+  static checkSpamList = checkSpamList;
 
   /**
    * Enable or disable logging globally
