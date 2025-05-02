@@ -320,6 +320,3 @@ Complete working examples are available in the examples directory:
 - [Bulk verification](./examples/bulk-verification.ts)
 - [Inbox health](./examples/inbox-health.ts)
 
-## License
-
-MIT
