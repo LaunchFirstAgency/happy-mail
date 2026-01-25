@@ -1,7 +1,10 @@
-import { setServers } from "dns";
-import { createConnection } from "net";
-import { resolveMxRecords, isValidEmail, Logger } from "@/util";
-import { EmailVerificationResponse, IEmailVerificationService } from "@/validation/email-validation.service";
+import { setServers } from 'dns';
+import { createConnection } from 'net';
+import { resolveMxRecords, isValidEmail, Logger } from '@/util';
+import {
+  EmailVerificationResponse,
+  IEmailVerificationService,
+} from '@/validation/email-validation.service';
 
 /**
  *
@@ -22,9 +25,9 @@ import { EmailVerificationResponse, IEmailVerificationService } from "@/validati
  */
 
 // Define constants for SMTP response codes
-const SMTP_READY = "220";
-const SMTP_OK = "250";
-const SMTP_FAIL = "550"; //TODO: other failure codes
+const SMTP_READY = '220';
+const SMTP_OK = '250';
+const SMTP_FAIL = '550'; //TODO: other failure codes
 
 export enum EmailVerificationInfoCodes {
   FinishedVerification = 1,
@@ -64,9 +67,9 @@ type EmailVerificationOptions = {
 export class EmailVerificationService implements IEmailVerificationService {
   protected readonly defaultOptions: EmailVerificationOptions = {
     ports: [25, 465, 587], // Try submission and SMTPS ports first
-    sender: "user@example.com",
+    sender: 'user@example.com',
     timeout: 10000, // 10 seconds timeout
-    fqdn: "mail.example.org",
+    fqdn: 'mail.example.org',
     ignore: false,
     dnsOnly: false,
   };
@@ -76,14 +79,14 @@ export class EmailVerificationService implements IEmailVerificationService {
   async verify(
     email: string,
     options: EmailVerificationOptions = this.defaultOptions,
-    mxRecordsIndex: number = 0,
+    mxRecordsIndex: number = 0
   ): Promise<EmailVerificationResponse> {
     if (!isValidEmail(email)) {
       return {
         success: false,
-        info: "Invalid Email Structure",
+        info: 'Invalid Email Structure',
         addr: email,
-        result: "invalid",
+        result: 'invalid',
         code: EmailVerificationInfoCodes.InvalidEmailStructure,
       };
     }
@@ -91,10 +94,10 @@ export class EmailVerificationService implements IEmailVerificationService {
     const opts = this.optionsDefaults(options);
     if (opts.dns) this.dnsConfig(opts);
 
-    Logger.log("# Verifying " + email);
+    Logger.log('# Verifying ' + email);
 
     const domain = email.split(/[@]/).splice(-1)[0].toLowerCase();
-    Logger.log("Resolving DNS... " + domain);
+    Logger.log('Resolving DNS... ' + domain);
 
     try {
       const addresses = await resolveMxRecords(domain);
@@ -103,8 +106,8 @@ export class EmailVerificationService implements IEmailVerificationService {
         return {
           success: false,
           addr: email,
-          info: "No MX Records",
-          result: "invalid",
+          info: 'No MX Records',
+          result: 'invalid',
           code: EmailVerificationInfoCodes.NoMxRecords,
         };
       }
@@ -114,8 +117,8 @@ export class EmailVerificationService implements IEmailVerificationService {
         return {
           success: true,
           addr: email,
-          info: "MX Records found (DNS-only check)",
-          result: "unknown",
+          info: 'MX Records found (DNS-only check)',
+          result: 'unknown',
           code: EmailVerificationInfoCodes.DNSOnlyVerification,
         };
       }
@@ -128,23 +131,30 @@ export class EmailVerificationService implements IEmailVerificationService {
         return {
           success: false,
           addr: email,
-          info: "All MX records failed",
-          result: "unknown",
+          info: 'All MX records failed',
+          result: 'unknown',
           code: EmailVerificationInfoCodes.DomainNotFound,
         };
       }
 
       const currentMxRecord = addresses[mxRecordsIndex];
-      Logger.log(`Attempting connection to ${currentMxRecord.exchange} with priority ${currentMxRecord.priority}`);
+      Logger.log(
+        `Attempting connection to ${currentMxRecord.exchange} with priority ${currentMxRecord.priority}`
+      );
 
       for (const port of opts.ports ?? []) {
         try {
-          const smtpResult = await this.beginSMTPQueries(email, currentMxRecord.exchange, { ...opts, port });
+          const smtpResult = await this.beginSMTPQueries(email, currentMxRecord.exchange, {
+            ...opts,
+            port,
+          });
           // If the SMTP query was successful, return the result
           return smtpResult;
         } catch (smtpError) {
           const errorMessage = smtpError instanceof Error ? smtpError.message : String(smtpError);
-          Logger.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${errorMessage}`);
+          Logger.error(
+            `Error connecting to ${currentMxRecord.exchange} on port ${port}: ${errorMessage}`
+          );
           // Continue to the next port
         }
       }
@@ -155,8 +165,8 @@ export class EmailVerificationService implements IEmailVerificationService {
       return {
         success: false,
         addr: email,
-        info: "Domain not found",
-        result: "invalid",
+        info: 'Domain not found',
+        result: 'invalid',
         code: EmailVerificationInfoCodes.DomainNotFound,
       };
     }
@@ -164,12 +174,16 @@ export class EmailVerificationService implements IEmailVerificationService {
   private async beginSMTPQueries(
     email: string,
     smtpServer: string,
-    options: EmailVerificationOptions & { port: number },
+    options: EmailVerificationOptions & { port: number }
   ): Promise<EmailVerificationResponse> {
     return new Promise((resolve, reject) => {
       //force use of ipv4
-      const socket = createConnection({ port: options.port ?? 25, host: smtpServer, autoSelectFamily: true });
-      let response = "";
+      const socket = createConnection({
+        port: options.port ?? 25,
+        host: smtpServer,
+        autoSelectFamily: true,
+      });
+      let response = '';
       let stage = 0;
       let success = false;
       let tryagain = false; //doesnt actually retry automatically, just lets calling function know to retry if it wants
@@ -178,7 +192,7 @@ export class EmailVerificationService implements IEmailVerificationService {
       const handleStage0 = () => {
         if (response.indexOf(SMTP_READY) > -1) {
           sendCommand(`EHLO ${options.fqdn}\r\n`, () => {
-            response = "";
+            response = '';
             stage++;
           });
           return stage + 1;
@@ -195,8 +209,12 @@ export class EmailVerificationService implements IEmailVerificationService {
             stage++;
           });
         } else {
-          Logger.log("response", response);
-          if (response.indexOf("421") > -1 || response.indexOf("450") > -1 || response.indexOf("451") > -1) {
+          Logger.log('response', response);
+          if (
+            response.indexOf('421') > -1 ||
+            response.indexOf('450') > -1 ||
+            response.indexOf('451') > -1
+          ) {
             tryagain = true;
           }
           socket.end();
@@ -207,7 +225,7 @@ export class EmailVerificationService implements IEmailVerificationService {
       const handleStage2 = () => {
         if (response.indexOf(SMTP_OK) > -1) {
           // MAIL Worked, now try RCPT TO
-          Logger.log("sending RCPT TO");
+          Logger.log('sending RCPT TO');
           sendCommand(`RCPT TO:<${email}>\r\n`, () => {
             stage++;
           });
@@ -218,8 +236,8 @@ export class EmailVerificationService implements IEmailVerificationService {
 
       // Function to handle the response after RCPT TO command
       const handleStage3 = () => {
-        Logger.log("sending quit", response);
-        sendCommand("QUIT\r\n", () => {
+        Logger.log('sending quit', response);
+        sendCommand('QUIT\r\n', () => {
           //Logger.log("QUIT", response);
           if (response.indexOf(SMTP_FAIL) > -1) {
             return (success = false);
@@ -227,7 +245,9 @@ export class EmailVerificationService implements IEmailVerificationService {
           // SMTP may connect properly on quit, but still issue a 550 indicating invalid address
           if (
             response.indexOf(SMTP_OK) > -1 ||
-            (options.ignore && typeof options.ignore === "string" && response.indexOf(options.ignore) > -1)
+            (options.ignore &&
+              typeof options.ignore === 'string' &&
+              response.indexOf(options.ignore) > -1)
           ) {
             // RCPT Worked, the address is valid
             return (success = true);
@@ -242,10 +262,10 @@ export class EmailVerificationService implements IEmailVerificationService {
         socket.write(cmd, callback);
       };
 
-      socket.on("data", (data) => {
+      socket.on('data', (data) => {
         response += data.toString();
-        const completed = response.slice(-1) === "\n";
-        Logger.log("completed", completed, stage);
+        const completed = response.slice(-1) === '\n';
+        Logger.log('completed', completed, stage);
         if (completed && stage <= 3) {
           switch (stage) {
             case 0:
@@ -264,35 +284,35 @@ export class EmailVerificationService implements IEmailVerificationService {
         }
       });
 
-      socket.on("error", (err) => {
+      socket.on('error', (err) => {
         reject({
           success: false,
-          info: "SMTP connection error",
+          info: 'SMTP connection error',
           addr: email,
-          result: "invalid",
+          result: 'invalid',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
           tryagain,
         });
       });
 
-      socket.on("end", () => {
+      socket.on('end', () => {
         resolve({
           success,
-          info: `${email} is ${success ? "a valid" : "an invalid"} address`,
+          info: `${email} is ${success ? 'a valid' : 'an invalid'} address`,
           addr: email,
-          result: success ? "valid" : "invalid",
+          result: success ? 'valid' : 'invalid',
           code: EmailVerificationInfoCodes.FinishedVerification,
           tryagain,
         });
       });
 
-      socket.on("timeout", () => {
+      socket.on('timeout', () => {
         socket.destroy();
         reject({
           success: false,
-          info: "Connection Timed Out",
+          info: 'Connection Timed Out',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionTimeout,
           tryagain,
         });
@@ -307,11 +327,11 @@ export class EmailVerificationService implements IEmailVerificationService {
     try {
       if (Array.isArray(options.dns)) {
         setServers(options.dns);
-      } else if (typeof options.dns === "string") {
+      } else if (typeof options.dns === 'string') {
         setServers([options.dns]);
       }
     } catch (e) {
-      throw new Error("Invalid DNS Options");
+      throw new Error('Invalid DNS Options');
     }
   }
   private optionsDefaults(options?: EmailVerificationOptions): EmailVerificationOptions {

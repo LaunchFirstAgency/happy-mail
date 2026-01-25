@@ -1,8 +1,8 @@
-import isEmail from "validator/lib/isEmail";
-import normalizeEmail from "validator/lib/normalizeEmail";
-import parser from "tld-extract";
-import { type DomainParts, MXHostType } from "@/types";
-import { Logger } from "./logger";
+import isEmail from 'validator/lib/isEmail';
+import normalizeEmail from 'validator/lib/normalizeEmail';
+import parser from 'tld-extract';
+import { type DomainParts, MXHostType } from '@/types';
+import { Logger } from './logger';
 
 /**
  * Check if a string is a syntactically valid email address.
@@ -65,15 +65,15 @@ export function normalizeEmailAddress(email: string, provider: MXHostType): stri
   });
 
   if (provider === MXHostType.GOOGLE || provider === MXHostType.OUTLOOK) {
-    const name = email.split("@")[0];
-    const domain = email.split("@")[1];
-    const cleanName = name.split("+")[0];
+    const name = email.split('@')[0];
+    const domain = email.split('@')[1];
+    const cleanName = name.split('+')[0];
     normalEmail = `${cleanName}@${domain}`;
 
     return normalEmail.toLocaleLowerCase();
   }
 
-  return normalEmail ? normalEmail.toLocaleLowerCase() : "INVALID";
+  return normalEmail ? normalEmail.toLocaleLowerCase() : 'INVALID';
 }
 
 /**
@@ -99,7 +99,7 @@ export function normalizeEmailAddress(email: string, provider: MXHostType): stri
  * ```
  */
 export function splitEmailDomain(email: string): DomainParts | false {
-  const address = email.split("@").pop();
+  const address = email.split('@').pop();
 
   try {
     const result = parser(`http://${address}`);

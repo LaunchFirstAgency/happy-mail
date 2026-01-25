@@ -123,11 +123,11 @@ const client = new HappyEmailClient();
 const result = await client.validateEmail('test@example.com');
 
 // Simple checks
-console.log(isValid(result));         // true/false
-console.log(isSafeToSend(result));    // true/false (stricter)
-console.log(shouldReject(result));    // true/false
-console.log(getRiskLevel(result));    // 'low' | 'medium' | 'high'
-console.log(getScore(result));        // 0-100
+console.log(isValid(result)); // true/false
+console.log(isSafeToSend(result)); // true/false (stricter)
+console.log(shouldReject(result)); // true/false
+console.log(getRiskLevel(result)); // 'low' | 'medium' | 'high'
+console.log(getScore(result)); // 0-100
 
 // Get specific reasons and recommendations
 console.log(getRejectionReasons(result));
@@ -160,23 +160,19 @@ import { HappyEmailClient } from '@launchfirstagency/happy-mail';
 
 const client = new HappyEmailClient();
 
-const emails = [
-  'user1@example.com',
-  'user2@gmail.com',
-  'user3@test.com'
-];
+const emails = ['user1@example.com', 'user2@gmail.com', 'user3@test.com'];
 
 const results = await client.validateBatch(emails, {
-  concurrency: 5,           // Process 5 at a time
-  skipBounceCheck: true,    // Skip bounce checks for speed
+  concurrency: 5, // Process 5 at a time
+  skipBounceCheck: true, // Skip bounce checks for speed
   onProgress: (done, total) => {
     console.log(`Progress: ${done}/${total}`);
   },
-  continueOnError: true     // Keep going if some fail
+  continueOnError: true, // Keep going if some fail
 });
 
 // Process results
-results.forEach(result => {
+results.forEach((result) => {
   if (result.success && result.result) {
     console.log(`✅ ${result.email}`);
   } else {
@@ -313,18 +309,18 @@ For large-scale email verification, use NeverBounce's bulk API.
 import { HappyEmailClient, InputLocationType } from '@launchfirstagency/happy-mail';
 
 const client = new HappyEmailClient({
-  neverBounceApiKey: 'your-api-key'
+  neverBounceApiKey: 'your-api-key',
 });
 
 // Create a bulk verification job
 const job = await client.createBulkJob({
   input: [
     { uid: '1', email: 'user1@example.com' },
-    { uid: '2', email: 'user2@example.com' }
+    { uid: '2', email: 'user2@example.com' },
   ],
   inputLocation: InputLocationType.SUPPLIED,
   autoParse: true,
-  autoStart: true
+  autoStart: true,
 });
 
 // Check job status
@@ -354,6 +350,7 @@ const client = new HappyEmailClient({ preset: 'production' });
 ```
 
 **Settings:**
+
 - Bounce checks: **Enabled**
 - Entropy threshold: **4.0** (stricter)
 - Min length for random check: **6**
@@ -372,6 +369,7 @@ const client = new HappyEmailClient({ preset: 'development' });
 ```
 
 **Settings:**
+
 - Bounce checks: **Disabled** (faster)
 - Entropy threshold: **5.5** (lenient)
 - Min length for random check: **10**
@@ -390,6 +388,7 @@ const client = new HappyEmailClient({ preset: 'strict' });
 ```
 
 **Settings:**
+
 - Bounce checks: **Enabled**
 - Entropy threshold: **3.5** (very strict)
 - Min length for random check: **5**
@@ -408,6 +407,7 @@ const client = new HappyEmailClient({ preset: 'lenient' });
 ```
 
 **Settings:**
+
 - Bounce checks: **Disabled**
 - Entropy threshold: **6.0** (very lenient)
 - Min length for random check: **12**
@@ -504,18 +504,21 @@ All Happy Mail errors include:
 #### Error Codes
 
 **Validation Errors:**
+
 - `INVALID_EMAIL_SYNTAX`
 - `INVALID_DOMAIN`
 - `DISPOSABLE_DOMAIN`
 - `VALIDATION_FAILED`
 
 **Network Errors:**
+
 - `NETWORK_ERROR`
 - `TIMEOUT`
 - `CONNECTION_REFUSED`
 - `DNS_LOOKUP_FAILED`
 
 **API Errors:**
+
 - `API_ERROR`
 - `API_KEY_MISSING`
 - `API_KEY_INVALID`
@@ -524,6 +527,7 @@ All Happy Mail errors include:
 - `API_UNAVAILABLE`
 
 **Configuration Errors:**
+
 - `INVALID_CONFIGURATION`
 - `MISSING_REQUIRED_OPTION`
 
@@ -534,19 +538,17 @@ Automatically retry failed operations with configurable backoff strategy:
 ```typescript
 import { retryWithBackoff } from '@launchfirstagency/happy-mail';
 
-const result = await retryWithBackoff(
-  async () => client.validateEmail('user@example.com'),
-  {
-    maxAttempts: 3,
-    initialDelay: 1000,        // 1 second
-    maxDelay: 10000,           // 10 seconds max
-    backoffMultiplier: 2,      // Double delay each time
-    jitter: true               // Add randomness to prevent thundering herd
-  }
-);
+const result = await retryWithBackoff(async () => client.validateEmail('user@example.com'), {
+  maxAttempts: 3,
+  initialDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds max
+  backoffMultiplier: 2, // Double delay each time
+  jitter: true, // Add randomness to prevent thundering herd
+});
 ```
 
 The retry utility:
+
 - ✅ Automatically retries recoverable errors (Network, API rate limits)
 - ✅ Does not retry non-recoverable errors (Validation, Configuration)
 - ✅ Uses exponential backoff to avoid overwhelming servers
@@ -563,11 +565,7 @@ Happy Mail is written in TypeScript with full strict mode and provides comprehen
 Use branded types to ensure emails are validated at compile time:
 
 ```typescript
-import type {
-  ValidatedEmail,
-  SafeEmail,
-  NormalizedEmail,
-} from '@launchfirstagency/happy-mail';
+import type { ValidatedEmail, SafeEmail, NormalizedEmail } from '@launchfirstagency/happy-mail';
 
 // Type-safe function that only accepts validated emails
 function sendEmail(email: ValidatedEmail) {
@@ -670,15 +668,19 @@ new HappyEmailClient(options?: HappyEmailClientOptions)
 #### Validation Methods
 
 - `validateEmail(email: string, skipBounceCheck?: boolean): Promise<MailValidatorResponse>`
+
   - Validate a single email address
 
 - `validateBatch(emails: string[], options?: BatchValidationOptions): Promise<BatchValidationResult[]>`
+
   - Validate multiple emails with concurrency control
 
 - `quickCheck(email: string): Promise<MailValidatorResponse>`
+
   - Fast validation without bounce checking
 
 - `fullCheck(email: string): Promise<MailValidatorResponse>`
+
   - Comprehensive validation with all checks
 
 - `validateAndNormalize(email: string, skipBounceCheck?: boolean): Promise<ValidateAndNormalizeResult>`
@@ -708,21 +710,27 @@ new HappyEmailClient(options?: HappyEmailClientOptions)
 ### Result Helper Functions
 
 - `isValid(result: MailValidatorResponse): boolean`
+
   - Check if email passed basic validation
 
 - `isSafeToSend(result: MailValidatorResponse): boolean`
+
   - Check if email is safe to send to (stricter)
 
 - `shouldReject(result: MailValidatorResponse): boolean`
+
   - Check if email should be rejected
 
 - `getRiskLevel(result: MailValidatorResponse): RiskLevel`
+
   - Get risk classification: 'low' | 'medium' | 'high'
 
 - `getScore(result: MailValidatorResponse): number`
+
   - Get quality score (0-100)
 
 - `getRejectionReasons(result: MailValidatorResponse): RejectionReason[]`
+
   - Get specific rejection reasons
 
 - `getRecommendations(result: MailValidatorResponse): string[]`
@@ -735,37 +743,44 @@ Wrapper class providing a fluent API:
 ```typescript
 const result = new EmailValidationResult(rawResult);
 
-result.isValid();              // boolean
-result.isSafeToSend();         // boolean
-result.shouldReject();         // boolean
-result.getRiskLevel();         // 'low' | 'medium' | 'high'
-result.getScore();             // 0-100
-result.getRejectionReasons();  // string[]
-result.getRecommendations();   // string[]
-result.raw;                    // Access original response
+result.isValid(); // boolean
+result.isSafeToSend(); // boolean
+result.shouldReject(); // boolean
+result.getRiskLevel(); // 'low' | 'medium' | 'high'
+result.getScore(); // 0-100
+result.getRejectionReasons(); // string[]
+result.getRecommendations(); // string[]
+result.raw; // Access original response
 ```
 
 ### Utility Functions
 
 - `isValidEmail(email: string): boolean`
+
   - Quick syntax validation
 
 - `normalizeEmailAddress(email: string, provider: MXHostType): string`
+
   - Normalize email based on provider rules
 
 - `splitEmailDomain(email: string): DomainParts | false`
+
   - Parse domain parts from email
 
 - `calculateStringEntropy(str: string): number`
+
   - Calculate string randomness
 
 - `checkSpamList(domainOrIp: string): Promise<boolean>`
+
   - Check if domain/IP is on spam lists
 
 - `resolveMxRecords(domain: string): Promise<MxRecord[]>`
+
   - Resolve MX records for domain
 
 - `checkSSLCertificate(domain: string, port?: number): Promise<CertificateInfo>`
+
   - Check SSL certificate
 
 - `whois(domain: string): Promise<WhoisResult>`
@@ -774,9 +789,11 @@ result.raw;                    // Access original response
 ### Error Utilities
 
 - `retryWithBackoff<T>(fn: () => Promise<T>, config?: RetryConfig): Promise<T>`
+
   - Retry function with exponential backoff
 
 - `isHappyMailError(error: unknown): boolean`
+
   - Check if error is a Happy Mail error
 
 - `isRecoverableError(error: unknown): boolean`
@@ -785,9 +802,11 @@ result.raw;                    // Access original response
 ### Preset Functions
 
 - `getPreset(name: PresetName): Partial<HappyEmailClientOptions>`
+
   - Get configuration preset by name
 
 - `PRESETS: Record<PresetName, Partial<HappyEmailClientOptions>>`
+
   - All available presets
 
 - `PRESET_DESCRIPTIONS: Record<PresetName, string>`
@@ -838,12 +857,12 @@ const client = new HappyEmailClient({ preset: 'production' });
 
 const results = await client.validateBatch(emailList, {
   concurrency: 10,
-  onProgress: (done, total) => console.log(`${done}/${total}`)
+  onProgress: (done, total) => console.log(`${done}/${total}`),
 });
 
 const safeEmails = results
-  .filter(r => r.success && r.result && isSafeToSend(r.result))
-  .map(r => ({
+  .filter((r) => r.success && r.result && isSafeToSend(r.result))
+  .map((r) => ({
     email: r.email,
     score: getScore(r.result!),
   }));
@@ -909,20 +928,17 @@ import {
   retryWithBackoff,
   NetworkError,
   APIError,
-  ErrorCode
+  ErrorCode,
 } from '@launchfirstagency/happy-mail';
 
 const client = new HappyEmailClient({ preset: 'production' });
 
 try {
-  const result = await retryWithBackoff(
-    async () => client.validateEmail('user@example.com'),
-    {
-      maxAttempts: 3,
-      initialDelay: 1000,
-      backoffMultiplier: 2,
-    }
-  );
+  const result = await retryWithBackoff(async () => client.validateEmail('user@example.com'), {
+    maxAttempts: 3,
+    initialDelay: 1000,
+    backoffMultiplier: 2,
+  });
 
   console.log('Validation successful:', result);
 } catch (error) {
@@ -1006,7 +1022,5 @@ AGPL License - see [LICENSE](./LICENSE) file for details
 For issues, questions, or contributions, please visit our [GitHub repository](https://github.com/LaunchFirstAgency/happy-mail).
 
 ---
-
- 
 
 **Made with ❤️ by Launch First Agency**

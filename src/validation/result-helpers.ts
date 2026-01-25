@@ -1,19 +1,19 @@
-import { MailValidatorResponse, MailBoxCanReceiveStatus } from "@/types";
+import { MailValidatorResponse, MailBoxCanReceiveStatus } from '@/types';
 
 /**
  * Risk level classification for email validation results
  */
-export type RiskLevel = "low" | "medium" | "high";
+export type RiskLevel = 'low' | 'medium' | 'high';
 
 /**
  * Reasons why an email might be rejected
  */
 export type RejectionReason =
-  | "invalid_syntax"
-  | "disposable_domain"
-  | "cannot_receive"
-  | "high_risk"
-  | "randomly_generated";
+  | 'invalid_syntax'
+  | 'disposable_domain'
+  | 'cannot_receive'
+  | 'high_risk'
+  | 'randomly_generated';
 
 /**
  * Result interpretation helpers for email validation responses.
@@ -151,7 +151,7 @@ export function getRiskLevel(result: MailValidatorResponse): RiskLevel {
     result.risks.canReceive === MailBoxCanReceiveStatus.UNSAFE ||
     result.risks.canReceive === MailBoxCanReceiveStatus.HIGH_RISK
   ) {
-    return "high";
+    return 'high';
   }
 
   // Medium risk: disposable, random, or unknown receive status
@@ -160,11 +160,11 @@ export function getRiskLevel(result: MailValidatorResponse): RiskLevel {
     result.risks.likelyRandomlyGenerated ||
     result.risks.canReceive === MailBoxCanReceiveStatus.UNKNOWN
   ) {
-    return "medium";
+    return 'medium';
   }
 
   // Low risk: all checks passed
-  return "low";
+  return 'low';
 }
 
 /**
@@ -175,26 +175,26 @@ export function getRejectionReasons(result: MailValidatorResponse): RejectionRea
   const reasons: RejectionReason[] = [];
 
   if (!result.risks.validSyntax) {
-    reasons.push("invalid_syntax");
+    reasons.push('invalid_syntax');
   }
 
   if (result.risks.disposableDomain) {
-    reasons.push("disposable_domain");
+    reasons.push('disposable_domain');
   }
 
   if (
     result.risks.canReceive === MailBoxCanReceiveStatus.UNSAFE ||
     result.risks.canReceive === MailBoxCanReceiveStatus.HIGH_RISK
   ) {
-    reasons.push("cannot_receive");
+    reasons.push('cannot_receive');
   }
 
   if (result.risks.canReceive === MailBoxCanReceiveStatus.HIGH_RISK) {
-    reasons.push("high_risk");
+    reasons.push('high_risk');
   }
 
   if (result.risks.likelyRandomlyGenerated) {
-    reasons.push("randomly_generated");
+    reasons.push('randomly_generated');
   }
 
   return reasons;
@@ -208,35 +208,35 @@ export function getRecommendations(result: MailValidatorResponse): string[] {
   const recommendations: string[] = [];
   const riskLevel = getRiskLevel(result);
 
-  if (riskLevel === "high") {
-    recommendations.push("Do not send emails to this address");
+  if (riskLevel === 'high') {
+    recommendations.push('Do not send emails to this address');
     if (!result.risks.validSyntax) {
-      recommendations.push("Email has invalid syntax - ask user to correct it");
+      recommendations.push('Email has invalid syntax - ask user to correct it');
     }
     if (result.risks.canReceive === MailBoxCanReceiveStatus.UNSAFE) {
-      recommendations.push("Mailbox cannot receive emails - verify with recipient");
+      recommendations.push('Mailbox cannot receive emails - verify with recipient');
     }
     return recommendations;
   }
 
-  if (riskLevel === "medium") {
+  if (riskLevel === 'medium') {
     if (result.risks.disposableDomain) {
-      recommendations.push("This is a disposable/temporary email address");
-      recommendations.push("Consider requiring a permanent email address");
+      recommendations.push('This is a disposable/temporary email address');
+      recommendations.push('Consider requiring a permanent email address');
     }
     if (result.risks.likelyRandomlyGenerated) {
-      recommendations.push("Email appears randomly generated - may be fake");
-      recommendations.push("Consider additional verification steps");
+      recommendations.push('Email appears randomly generated - may be fake');
+      recommendations.push('Consider additional verification steps');
     }
     if (result.risks.canReceive === MailBoxCanReceiveStatus.UNKNOWN) {
-      recommendations.push("Cannot verify if mailbox can receive emails");
-      recommendations.push("Proceed with caution or use additional verification");
+      recommendations.push('Cannot verify if mailbox can receive emails');
+      recommendations.push('Proceed with caution or use additional verification');
     }
     return recommendations;
   }
 
   // Low risk
-  recommendations.push("Email appears valid and safe to use");
+  recommendations.push('Email appears valid and safe to use');
   return recommendations;
 }
 

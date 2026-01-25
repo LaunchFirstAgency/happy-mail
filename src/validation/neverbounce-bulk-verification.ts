@@ -1,8 +1,8 @@
-import { Logger } from "../util";
-import { camelizeKeys, snakeizeKeys } from "../util/case-converter";
-import { NeverBounceFlagTypes, NeverBounceResultType } from "./neverbounce-verification";
+import { Logger } from '../util';
+import { camelizeKeys, snakeizeKeys } from '../util/case-converter';
+import { NeverBounceFlagTypes, NeverBounceResultType } from './neverbounce-verification';
 
-const NEVERBOUNCE_API_BASE = "https://api.neverbounce.com/v4" as const;
+const NEVERBOUNCE_API_BASE = 'https://api.neverbounce.com/v4' as const;
 
 export interface BulkJobRequest {
   input: string | { uid: string; email: string }[];
@@ -36,15 +36,15 @@ export interface BulkJobStatus {
   processed: number;
   completed: number;
   jobStatus:
-    | "underReview"
-    | "queued"
-    | "failed"
-    | "complete"
-    | "running"
-    | "parsing"
-    | "waiting"
-    | "waitingAnalyzed"
-    | "uploading";
+    | 'underReview'
+    | 'queued'
+    | 'failed'
+    | 'complete'
+    | 'running'
+    | 'parsing'
+    | 'waiting'
+    | 'waitingAnalyzed'
+    | 'uploading';
 }
 
 export interface BulkJobResults {
@@ -101,8 +101,8 @@ export interface JobResultsQuery {
 }
 
 export enum InputLocationType {
-  REMOTE_URL = "remote_url",
-  SUPPLIED = "supplied",
+  REMOTE_URL = 'remote_url',
+  SUPPLIED = 'supplied',
 }
 
 /**
@@ -116,7 +116,7 @@ export class NeverBounceBulkVerification {
     this.apiKey = apiKey;
   }
 
-  private async makeRequest<T>(endpoint: string, method: string = "GET", data?: any): Promise<T> {
+  private async makeRequest<T>(endpoint: string, method: string = 'GET', data?: any): Promise<T> {
     const url = new URL(`${NEVERBOUNCE_API_BASE}${endpoint}`);
 
     // Convert request data to snake_case for NeverBounce API
@@ -129,22 +129,22 @@ export class NeverBounceBulkVerification {
     };
 
     try {
-      if (method === "GET") {
+      if (method === 'GET') {
         url.search = new URLSearchParams(requestData as Record<string, string>).toString();
       }
 
       const response = await fetch(url.toString(), {
         method,
         headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
         },
-        body: method !== "GET" ? JSON.stringify(requestData) : undefined,
+        body: method !== 'GET' ? JSON.stringify(requestData) : undefined,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        Logger.error("NeverBounce API error:", errorData);
+        Logger.error('NeverBounce API error:', errorData);
         throw new Error(`NeverBounce API error: ${errorData.message || response.statusText}`);
       }
 
@@ -153,7 +153,7 @@ export class NeverBounceBulkVerification {
 
       return camelizeKeys(responseData) as T;
     } catch (error) {
-      Logger.error("Failed to make NeverBounce API request:", error);
+      Logger.error('Failed to make NeverBounce API request:', error);
       throw error;
     }
   }
@@ -164,7 +164,7 @@ export class NeverBounceBulkVerification {
    * @returns The created job details
    */
   async createBulkJob(request: BulkJobRequest): Promise<BulkJobResponse> {
-    return this.makeRequest<BulkJobResponse>("/jobs/create", "POST", request);
+    return this.makeRequest<BulkJobResponse>('/jobs/create', 'POST', request);
   }
 
   /**
@@ -172,7 +172,7 @@ export class NeverBounceBulkVerification {
    * @returns Array of job statuses
    */
   async listJobs(): Promise<BulkJobStatus[]> {
-    const response = await this.makeRequest<{ jobs: BulkJobStatus[] }>("/jobs/search");
+    const response = await this.makeRequest<{ jobs: BulkJobStatus[] }>('/jobs/search');
     return response.jobs;
   }
 
@@ -182,7 +182,7 @@ export class NeverBounceBulkVerification {
    * @returns The job status
    */
   async getJobStatus(jobId: number): Promise<BulkJobStatus> {
-    return this.makeRequest<BulkJobStatus>("/jobs/status", "GET", { jobId });
+    return this.makeRequest<BulkJobStatus>('/jobs/status', 'GET', { jobId });
   }
 
   /**
@@ -192,7 +192,7 @@ export class NeverBounceBulkVerification {
    * @returns The job results
    */
   async getJobResults(jobId: string, query?: JobResultsQuery): Promise<BulkJobResults> {
-    return this.makeRequest<BulkJobResults>("/jobs/results", "GET", {
+    return this.makeRequest<BulkJobResults>('/jobs/results', 'GET', {
       jobId,
       ...query,
     });
@@ -217,14 +217,14 @@ export class NeverBounceBulkVerification {
       const response = await fetch(url.toString());
       if (!response.ok) {
         const errorData = await response.json();
-        Logger.error("NeverBounce API error:", errorData);
+        Logger.error('NeverBounce API error:', errorData);
         throw new Error(`NeverBounce API error: ${errorData.message || response.statusText}`);
       }
 
       const arrayBuffer = await response.arrayBuffer();
       return Buffer.from(arrayBuffer);
     } catch (error) {
-      Logger.error("Failed to download job results:", error);
+      Logger.error('Failed to download job results:', error);
       throw error;
     }
   }
@@ -235,7 +235,9 @@ export class NeverBounceBulkVerification {
    * @returns The deletion status
    */
   async deleteJob(jobId: string): Promise<{ status: string }> {
-    return this.makeRequest<{ status: string }>("/jobs/delete", "POST", { jobId });
+    return this.makeRequest<{ status: string }>('/jobs/delete', 'POST', {
+      jobId,
+    });
   }
 
   /**
@@ -250,6 +252,6 @@ export class NeverBounceBulkVerification {
     itemsPerPage: number;
     jobs: BulkJobStatus[];
   }> {
-    return this.makeRequest("/jobs/search", "GET", query);
+    return this.makeRequest('/jobs/search', 'GET', query);
   }
 }

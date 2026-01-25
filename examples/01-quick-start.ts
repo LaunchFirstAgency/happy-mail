@@ -5,16 +5,16 @@
  * It shows basic email validation using the HappyEmailClient.
  */
 
-import { HappyEmailClient, isValid, getRiskLevel } from "@launchfirstagency/happy-mail";
+import { HappyEmailClient, isValid, getRiskLevel } from '@launchfirstagency/happy-mail';
 
 async function quickStart() {
-  console.log("=== Quick Start: Email Validation ===\n");
+  console.log('=== Quick Start: Email Validation ===\n');
 
   // Create a client (no configuration needed for basic validation)
   const client = new HappyEmailClient();
 
   // Validate a single email
-  const email = "user@example.com";
+  const email = 'user@example.com';
   console.log(`Validating: ${email}`);
 
   const result = await client.validateEmail(email, true); // Skip bounce check for speed
@@ -24,7 +24,7 @@ async function quickStart() {
   console.log(`Risk Level: ${getRiskLevel(result)}`);
   console.log(`Provider: ${result.provider}`);
   console.log(`Type: ${result.type}`);
-  console.log("\nRisks:");
+  console.log('\nRisks:');
   console.log(`  - Valid Syntax: ${result.risks.validSyntax}`);
   console.log(`  - Disposable: ${result.risks.disposableDomain}`);
   console.log(`  - Random: ${result.risks.likelyRandomlyGenerated}`);

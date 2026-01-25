@@ -1,13 +1,13 @@
-import { resolve4, lookup } from "node:dns";
-import { promisify } from "node:util";
-import { Logger } from "../util";
+import { resolve4, lookup } from 'node:dns';
+import { promisify } from 'node:util';
+import { Logger } from '../util';
 const resolve4Async = promisify(resolve4);
 const lookupAsync = promisify(lookup);
 const ipRegex =
   /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
 function reverseIp(ip: string): string {
-  return ip.split(".").reverse().join(".");
+  return ip.split('.').reverse().join('.');
 }
 
 async function checkSpamhaus(ip: string) {
@@ -23,22 +23,22 @@ async function checkSpamhaus(ip: string) {
   try {
     const response = await resolve4Async(querySBL);
     if (response && response.length > 0) {
-      results.push({ isListed: true, list: "SBL" });
+      results.push({ isListed: true, list: 'SBL' });
     }
   } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === "ENOTFOUND") {
-      results.push({ isListed: false, list: "SBL" });
+    if (error instanceof Error && 'code' in error && error.code === 'ENOTFOUND') {
+      results.push({ isListed: false, list: 'SBL' });
     }
   }
 
   try {
     const response = await resolve4Async(queryZenList);
     if (response && response.length > 0) {
-      results.push({ isListed: true, list: "Zen" });
+      results.push({ isListed: true, list: 'Zen' });
     }
   } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === "ENOTFOUND") {
-      results.push({ isListed: false, list: "Zen" });
+    if (error instanceof Error && 'code' in error && error.code === 'ENOTFOUND') {
+      results.push({ isListed: false, list: 'Zen' });
     }
   }
 

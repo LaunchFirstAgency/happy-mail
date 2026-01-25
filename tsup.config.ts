@@ -1,20 +1,20 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from 'tsup';
 
 export default defineConfig({
   entry: {
-    index: "src/index.ts",
-    internal: "src/internal.ts",
+    index: 'src/index.ts',
+    internal: 'src/internal.ts',
   },
-  format: ["cjs", "esm"],
-  outDir: "dist",
+  format: ['cjs', 'esm'],
+  outDir: 'dist',
   dts: true,
-  target: "es2021",
-  platform: "node",
+  target: 'es2021',
+  platform: 'node',
   splitting: true,
   sourcemap: true,
   cjsInterop: true,
   clean: true,
   treeshake: true,
-  external: ["examples", "__test__"],
+  external: ['examples', '__test__'],
   noExternal: [],
 });

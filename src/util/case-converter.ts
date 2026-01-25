@@ -3,11 +3,11 @@
  */
 export function toCamelCase(str: string): string {
   // First collapse multiple underscores into a single underscore
-  const normalized = str.replace(/_+/g, "_");
+  const normalized = str.replace(/_+/g, '_');
   // Remove leading and trailing underscores
-  const withoutEdgeUnderscores = normalized.replace(/^_|_$/g, "");
+  const withoutEdgeUnderscores = normalized.replace(/^_|_$/g, '');
   // Remove underscores before special characters and numbers without capitalization
-  const handledSpecialChars = withoutEdgeUnderscores.replace(/_([^a-zA-Z])/g, "$1");
+  const handledSpecialChars = withoutEdgeUnderscores.replace(/_([^a-zA-Z])/g, '$1');
   // Convert the rest of the string
   const converted = handledSpecialChars.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
   // Ensure first character is lowercase
@@ -26,7 +26,7 @@ export function toSnakeCase(str: string): string {
  */
 export function camelizeKeys<T extends object>(obj: T): any {
   if (Array.isArray(obj)) {
-    return obj.map((v) => (v && typeof v === "object" ? camelizeKeys(v) : v));
+    return obj.map((v) => (v && typeof v === 'object' ? camelizeKeys(v) : v));
   }
 
   return Object.keys(obj).reduce(
@@ -34,11 +34,11 @@ export function camelizeKeys<T extends object>(obj: T): any {
       const value = obj[key as keyof T];
       const camelKey = toCamelCase(key);
 
-      result[camelKey] = value && typeof value === "object" ? camelizeKeys(value as object) : value;
+      result[camelKey] = value && typeof value === 'object' ? camelizeKeys(value as object) : value;
 
       return result;
     },
-    {} as Record<string, any>,
+    {} as Record<string, any>
   );
 }
 
@@ -47,7 +47,7 @@ export function camelizeKeys<T extends object>(obj: T): any {
  */
 export function snakeizeKeys<T extends object>(obj: T): any {
   if (Array.isArray(obj)) {
-    return obj.map((v) => (v && typeof v === "object" ? snakeizeKeys(v) : v));
+    return obj.map((v) => (v && typeof v === 'object' ? snakeizeKeys(v) : v));
   }
 
   return Object.keys(obj).reduce(
@@ -55,10 +55,10 @@ export function snakeizeKeys<T extends object>(obj: T): any {
       const value = obj[key as keyof T];
       const snakeKey = toSnakeCase(key);
 
-      result[snakeKey] = value && typeof value === "object" ? snakeizeKeys(value as object) : value;
+      result[snakeKey] = value && typeof value === 'object' ? snakeizeKeys(value as object) : value;
 
       return result;
     },
-    {} as Record<string, any>,
+    {} as Record<string, any>
   );
 }

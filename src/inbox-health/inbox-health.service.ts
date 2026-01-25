@@ -1,9 +1,13 @@
-import { resolveTxt } from "node:dns";
-import { promisify } from "node:util";
-import { EmailValidationService } from "@/validation/email-validation.service";
-import { checkSSLCertificate, whois, splitEmailDomain, resolveMxRecords, Logger } from "@/util";
-import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim } from "@/inbox-health/dkim";
-import { MXHostType } from "@/types/mx-host";
+import { resolveTxt } from 'node:dns';
+import { promisify } from 'node:util';
+import { EmailValidationService } from '@/validation/email-validation.service';
+import { checkSSLCertificate, whois, splitEmailDomain, resolveMxRecords, Logger } from '@/util';
+import {
+  constructGoogleDkimSelector,
+  constructOutlookDkimSelector,
+  validateDkim,
+} from '@/inbox-health/dkim';
+import { MXHostType } from '@/types/mx-host';
 
 const resolveTxtAsync = promisify(resolveTxt);
 
@@ -11,7 +15,10 @@ const resolveTxtAsync = promisify(resolveTxt);
  * Result of DNS record lookup
  * @internal
  */
-export type RecordLookup = { exists: boolean; records: string | string[] | null };
+export type RecordLookup = {
+  exists: boolean;
+  records: string | string[] | null;
+};
 
 /**
  * Service for checking inbox health metrics (MX, SPF, DMARC, DKIM, SSL)
@@ -38,7 +45,7 @@ export class InboxHealthService {
     let spf: string | null = null;
     for (const t in txt) {
       for (const r in txt[t]) {
-        if (txt[t][r].includes("v=spf1")) {
+        if (txt[t][r].includes('v=spf1')) {
           spf = txt[t][r];
         }
       }
@@ -54,7 +61,7 @@ export class InboxHealthService {
       let dmarc: string | null = null;
       for (const t in txt) {
         for (const r in txt[t]) {
-          if (txt[t][r].includes("v=DMARC1")) {
+          if (txt[t][r].includes('v=DMARC1')) {
             dmarc = txt[t][r];
           }
         }
@@ -62,7 +69,7 @@ export class InboxHealthService {
 
       return { exists: !!dmarc, records: dmarc };
     } catch (error) {
-      Logger.log("No DMARC Found", error);
+      Logger.log('No DMARC Found', error);
       return { exists: false, records: null };
     }
   }
@@ -79,9 +86,12 @@ export class InboxHealthService {
           : constructOutlookDkimSelector(domainParts);
       const txt = await resolveTxtAsync(`${domainKey}`);
       const dkimValidation = validateDkim(txt);
-      return { exists: dkimValidation.result, records: dkimValidation.dkimRecord };
+      return {
+        exists: dkimValidation.result,
+        records: dkimValidation.dkimRecord,
+      };
     } catch (error) {
-      Logger.log("No DKIM Found", error);
+      Logger.log('No DKIM Found', error);
       return { exists: false, records: null };
     }
   }
@@ -94,7 +104,7 @@ export class InboxHealthService {
       const getSslDetails = await checkSSLCertificate(domainParts.domain);
       return getSslDetails;
     } catch (error) {
-      Logger.warn("No SSL", email);
+      Logger.warn('No SSL', email);
       return { exists: false };
     }
   }
