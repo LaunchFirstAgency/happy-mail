@@ -5,7 +5,6 @@ import { EmailVerificationService } from "@/validation/email-verification";
 import { MailValidatorResponse } from "@/types";
 import { RecordLookup } from "@/inbox-health/inbox-health.service";
 import { Logger } from "@/util";
-import { checkSpamList } from "@/inbox-health/spam-check";
 import { NeverBounceBulkVerification } from "./validation/neverbounce-bulk-verification";
 import type {
   BulkJobRequest,
@@ -15,12 +14,6 @@ import type {
   JobResultsQuery,
   JobSearchQuery,
 } from "./validation/neverbounce-bulk-verification";
-import { isValidEmail, normalizeEmailAddress, splitEmailDomain } from "@/util/helpers";
-import { resolveMxRecords, checkPort, lowestPriorityMxRecord } from "@/util/mx";
-import { calculateStringEntropy } from "@/util/string-utils";
-import { checkSSLCertificate, getDaysBetween, getDaysRemaining, type CertificateInfo } from "@/util/ssl-checker";
-import { whois } from "@/util/domain-expiry";
-import { type MxRecord } from "node:dns";
 
 /**
  * Configuration options for HappyEmailClient
@@ -41,6 +34,34 @@ export interface HappyEmailClientOptions {
 }
 
 /**
+ * Options for batch validation operations
+ */
+export interface BatchValidationOptions {
+  /** Number of concurrent validations to run (default: 5) */
+  concurrency?: number;
+  /** Whether to skip bounce checks for all emails (default: uses client setting) */
+  skipBounceCheck?: boolean;
+  /** Progress callback function */
+  onProgress?: (completed: number, total: number) => void;
+  /** Whether to continue on errors (default: true) */
+  continueOnError?: boolean;
+}
+
+/**
+ * Result of a batch validation operation
+ */
+export interface BatchValidationResult {
+  /** Email address that was validated */
+  email: string;
+  /** Validation result if successful */
+  result?: MailValidatorResponse;
+  /** Error if validation failed */
+  error?: Error;
+  /** Whether the validation was successful */
+  success: boolean;
+}
+
+/**
  * HappyEmailClient provides a unified interface for email validation and inbox health services
  */
 export class HappyEmailClient {
@@ -48,77 +69,6 @@ export class HappyEmailClient {
   private inboxHealthService: InboxHealthService;
   private bulkVerification: NeverBounceBulkVerification | null = null;
   private options: HappyEmailClientOptions;
-
-  /**
-   * Static utility methods available on the client
-   */
-  /**
-   * Check if a string is a valid email address
-   */
-  static isValidEmail = isValidEmail;
-
-  /**
-   * Normalize an email address based on provider rules
-   */
-  static normalizeEmailAddress = normalizeEmailAddress;
-
-  /**
-   * Split an email domain into its component parts
-   */
-  static splitEmailDomain = splitEmailDomain;
-
-  /**
-   * Resolve MX records for a domain
-   */
-  static resolveMxRecords = resolveMxRecords;
-
-  /**
-   * Check if a port number is valid
-   */
-  static checkPort = checkPort;
-
-  /**
-   * Find the MX record with the lowest priority
-   */
-  static lowestPriorityMxRecord = lowestPriorityMxRecord;
-
-  /**
-   * Calculate the entropy (randomness) of a string
-   */
-  static calculateStringEntropy = calculateStringEntropy;
-
-  /**
-   * Check SSL certificate for a domain
-   */
-  static checkSSLCertificate = checkSSLCertificate;
-
-  /**
-   * Get days between two dates
-   */
-  static getDaysBetween = getDaysBetween;
-
-  /**
-   * Get days remaining until certificate expiry
-   */
-  static getDaysRemaining = getDaysRemaining;
-
-  /**
-   * Perform a WHOIS lookup for a domain
-   */
-  static whois = whois;
-
-  /**
-   * Check if an email is on a spam list
-   */
-  static checkSpamList = checkSpamList;
-
-  /**
-   * Enable or disable logging globally
-   * @param enabled Whether logging should be enabled
-   */
-  static setLoggingEnabled(enabled: boolean): void {
-    Logger.setEnabled(enabled);
-  }
 
   /**
    * Create a new HappyEmailClient
@@ -180,6 +130,61 @@ export class HappyEmailClient {
       Logger.error("Failed to validate email", error);
       throw error;
     }
+  }
+
+  /**
+   * Validate multiple email addresses in batch with concurrency control
+   * This is useful for validating lists of emails without using NeverBounce's bulk API
+   * @param emails Array of email addresses to validate
+   * @param options Batch validation options including concurrency and progress callback
+   * @returns Array of batch validation results
+   */
+  async validateBatch(emails: string[], options: BatchValidationOptions = {}): Promise<BatchValidationResult[]> {
+    const {
+      concurrency = 5,
+      skipBounceCheck,
+      onProgress,
+      continueOnError = true,
+    } = options;
+
+    const results: BatchValidationResult[] = [];
+    const total = emails.length;
+    let completed = 0;
+
+    // Process emails in batches based on concurrency limit
+    for (let i = 0; i < emails.length; i += concurrency) {
+      const batch = emails.slice(i, Math.min(i + concurrency, emails.length));
+
+      const batchPromises = batch.map(async (email) => {
+        try {
+          const result = await this.validateEmail(email, skipBounceCheck);
+          return {
+            email,
+            result,
+            success: true,
+          } as BatchValidationResult;
+        } catch (error) {
+          if (!continueOnError) {
+            throw error;
+          }
+          return {
+            email,
+            error: error instanceof Error ? error : new Error(String(error)),
+            success: false,
+          } as BatchValidationResult;
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+
+      completed += batchResults.length;
+      if (onProgress) {
+        onProgress(completed, total);
+      }
+    }
+
+    return results;
   }
 
   /**
