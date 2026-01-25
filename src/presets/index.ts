@@ -3,12 +3,12 @@
  * @module presets
  */
 
-import type { HappyEmailClientOptions } from "../client";
+import type { HappyEmailClientOptions } from '../client';
 
 /**
  * Available preset names
  */
-export type PresetName = "production" | "development" | "strict" | "lenient";
+export type PresetName = 'production' | 'development' | 'strict' | 'lenient';
 
 /**
  * Configuration preset for production environments
@@ -112,13 +112,13 @@ export const LENIENT_PRESET: Partial<HappyEmailClientOptions> = {
  */
 export function getPreset(preset: PresetName): Partial<HappyEmailClientOptions> {
   switch (preset) {
-    case "production":
+    case 'production':
       return PRODUCTION_PRESET;
-    case "development":
+    case 'development':
       return DEVELOPMENT_PRESET;
-    case "strict":
+    case 'strict':
       return STRICT_PRESET;
-    case "lenient":
+    case 'lenient':
       return LENIENT_PRESET;
     default:
       throw new Error(`Unknown preset: ${preset}`);
@@ -140,11 +140,11 @@ export const PRESETS: Record<PresetName, Partial<HappyEmailClientOptions>> = {
  */
 export const PRESET_DESCRIPTIONS: Record<PresetName, string> = {
   production:
-    "Optimized for production: accurate validation, strict filtering, bounce checks enabled",
+    'Optimized for production: accurate validation, strict filtering, bounce checks enabled',
   development:
-    "Optimized for development: fast validation, lenient filtering, bounce checks disabled",
+    'Optimized for development: fast validation, lenient filtering, bounce checks disabled',
   strict:
-    "Maximum accuracy: zero tolerance for risky emails, very low thresholds, ideal for high-value campaigns",
+    'Maximum accuracy: zero tolerance for risky emails, very low thresholds, ideal for high-value campaigns',
   lenient:
-    "High acceptance rate: minimal false positives, high thresholds, ideal for quick signup flows",
+    'High acceptance rate: minimal false positives, high thresholds, ideal for quick signup flows',
 };

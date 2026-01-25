@@ -135,6 +135,7 @@ npm run coverage
 ### Coverage in CI/CD
 
 Your `coverage/lcov.info` file can be used by:
+
 - **Codecov**
 - **Coveralls**
 - **SonarQube**

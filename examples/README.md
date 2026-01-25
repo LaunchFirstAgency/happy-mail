@@ -4,10 +4,10 @@ This directory contains example scripts showing how to use the Happy Email libra
 
 ## Running the Examples
 
-
 To run these examples:
 
 1. Make sure you have the dependencies installed:
+
    ```bash
    npm install
    ```
@@ -22,6 +22,7 @@ To run these examples:
 ### Email Validation (`validate-email.ts`)
 
 Shows how to validate email addresses, checking for:
+
 - Valid syntax
 - Disposable domains
 - Random/generated email detection
@@ -30,6 +31,7 @@ Shows how to validate email addresses, checking for:
 ### Inbox Health Check (`inbox-health.ts`)
 
 Demonstrates how to check the DNS and security settings for an email domain:
+
 - MX record verification
 - SPF, DKIM, and DMARC record checking
 - SSL certificate validation
@@ -38,6 +40,7 @@ Demonstrates how to check the DNS and security settings for an email domain:
 ### Utility Functions (`utilities.ts`)
 
 Highlights the individual utility functions available:
+
 - Email validation
 - Email normalization
 - Domain parsing
@@ -47,4 +50,4 @@ Highlights the individual utility functions available:
 
 - Some examples may make network calls to external services or DNS lookups
 - The examples use dummy/example email addresses, but you can modify them to test with real addresses
-- For functions that might make API calls (like bounce verification), the examples skip those parts to avoid hitting rate limits 
+- For functions that might make API calls (like bounce verification), the examples skip those parts to avoid hitting rate limits

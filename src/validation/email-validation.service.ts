@@ -6,14 +6,23 @@ import {
   resolveMxRecords,
   Logger,
   calculateStringEntropy,
-} from "@/util";
-import { type DomainParts, MailBoxCanReceiveStatus, MailValidatorResponse, EmailType, MXHostType } from "@/types";
-import { NeverBounceService, NeverBounceFlagTypes } from "@/validation/neverbounce-verification";
-import { EmailVerificationInfoCodes, EmailVerificationService } from "@/validation/email-verification";
+} from '@/util';
+import {
+  type DomainParts,
+  MailBoxCanReceiveStatus,
+  MailValidatorResponse,
+  EmailType,
+  MXHostType,
+} from '@/types';
+import { NeverBounceService, NeverBounceFlagTypes } from '@/validation/neverbounce-verification';
+import {
+  EmailVerificationInfoCodes,
+  EmailVerificationService,
+} from '@/validation/email-verification';
 
-const DISPOSABLE_DOMAINS = require("./data/disposable-email-domains.json");
-const WILDCARD_DISPOSABLE_DOMAINS = require("./data/wildcard-disposable-email-domains.json");
-const PERSONAL_DOMAINS = require("./data/personal-email-domains.json");
+const DISPOSABLE_DOMAINS = require('./data/disposable-email-domains.json');
+const WILDCARD_DISPOSABLE_DOMAINS = require('./data/wildcard-disposable-email-domains.json');
+const PERSONAL_DOMAINS = require('./data/personal-email-domains.json');
 
 /**
  * Interface for email verification services
@@ -23,7 +32,7 @@ export interface IEmailVerificationService {
   verify(email: string): Promise<EmailVerificationResponse>;
 }
 
-type VerificationResult = "valid" | "invalid" | "disposable" | "catchall" | "unknown";
+type VerificationResult = 'valid' | 'invalid' | 'disposable' | 'catchall' | 'unknown';
 
 /**
  * Response from email verification service
@@ -67,7 +76,9 @@ export class EmailValidationService {
       const normalized = normalizeEmailAddress(email, provider);
 
       const isAllowableDomain = this.isDomainAllowed(email);
-      const canReceiveEmails = skipBounceCheck ? MailBoxCanReceiveStatus.UNKNOWN : await this.bounceCheck(normalized);
+      const canReceiveEmails = skipBounceCheck
+        ? MailBoxCanReceiveStatus.UNKNOWN
+        : await this.bounceCheck(normalized);
       const emailType = this.getEmailType(email, domainParts);
       const likelyRandom = this.isLikelyRandomEmail(email);
       return {
@@ -84,7 +95,7 @@ export class EmailValidationService {
         },
       };
     } catch (error) {
-      Logger.error("Failed to validate email", error);
+      Logger.error('Failed to validate email', error);
       throw error;
     }
   }
@@ -108,17 +119,17 @@ export class EmailValidationService {
 
       const firstRecEx = lowestPriorityMxRecord(mxRecs).exchange;
 
-      if (firstRecEx.includes("google")) {
+      if (firstRecEx.includes('google')) {
         return MXHostType.GOOGLE;
       }
 
-      if (firstRecEx.includes("outlook.com") || firstRecEx.includes("microsoft.com")) {
+      if (firstRecEx.includes('outlook.com') || firstRecEx.includes('microsoft.com')) {
         return MXHostType.OUTLOOK;
       }
       //TODO more host types
       return MXHostType.OTHER;
     } catch (error) {
-      Logger.error("Failed to get MX Host", error);
+      Logger.error('Failed to get MX Host', error);
       return MXHostType.UNKNOWN;
     }
   }
@@ -134,7 +145,7 @@ export class EmailValidationService {
       return false;
     }
 
-    const domain = email.split("@").pop();
+    const domain = email.split('@').pop();
     if (!domain || DISPOSABLE_DOMAINS.includes(domain)) {
       return false;
     }
@@ -148,9 +159,9 @@ export class EmailValidationService {
 
   async bounceCheck(email: string): Promise<MailBoxCanReceiveStatus> {
     const bounceVerification = await this.emailVerificationService.verify(email);
-    Logger.log("Bounce Verification", bounceVerification);
-    if (bounceVerification.info.includes(NeverBounceFlagTypes["spamtrap_network"])) {
-      Logger.warn("Spamtrap Network - HIGH RISK");
+    Logger.log('Bounce Verification', bounceVerification);
+    if (bounceVerification.info.includes(NeverBounceFlagTypes['spamtrap_network'])) {
+      Logger.warn('Spamtrap Network - HIGH RISK');
       return MailBoxCanReceiveStatus.HIGH_RISK;
     }
 
@@ -158,18 +169,18 @@ export class EmailValidationService {
     if (
       bounceVerification.success &&
       bounceVerification.code === EmailVerificationInfoCodes.FinishedVerification &&
-      bounceVerification.result === "valid"
+      bounceVerification.result === 'valid'
     ) {
       return MailBoxCanReceiveStatus.SAFE;
     }
-    if (bounceVerification.result === "invalid") {
-      Logger.warn("Verification Failure");
+    if (bounceVerification.result === 'invalid') {
+      Logger.warn('Verification Failure');
       return MailBoxCanReceiveStatus.UNSAFE;
     }
 
     //todo: add more checks for flags
-    if (bounceVerification.info.includes(NeverBounceFlagTypes["spamtrap_network"])) {
-      Logger.warn("Spamtrap Network - HIGH RISK");
+    if (bounceVerification.info.includes(NeverBounceFlagTypes['spamtrap_network'])) {
+      Logger.warn('Spamtrap Network - HIGH RISK');
       return MailBoxCanReceiveStatus.HIGH_RISK;
     }
 
@@ -189,14 +200,14 @@ export class EmailValidationService {
     if (domain && PERSONAL_DOMAINS.includes(domain.domain)) {
       return EmailType.PERSONAL;
     }
-    if (domain && domain.tld === "gov") {
+    if (domain && domain.tld === 'gov') {
       return EmailType.GOVERNMENT;
     }
-    if (domain && domain.tld === "edu") {
+    if (domain && domain.tld === 'edu') {
       return EmailType.EDUCATION;
     }
 
-    if (email && email.split("@")[0].includes("support")) {
+    if (email && email.split('@')[0].includes('support')) {
       return EmailType.SUPPORT;
     }
 
@@ -205,13 +216,16 @@ export class EmailValidationService {
 
   isLikelyRandomEmail(email: string): boolean {
     // Split the email into local part and domain
-    const [localPart, domain] = email.split("@");
+    const [localPart, domain] = email.split('@');
 
     // Use the extracted entropy calculation utility
     const localPartEntropy = calculateStringEntropy(localPart);
 
     // Check if the local part is long enough and has high entropy
-    if (localPart.length >= this.minLengthForRandomCheck && localPartEntropy > this.entropyThreshold) {
+    if (
+      localPart.length >= this.minLengthForRandomCheck &&
+      localPartEntropy > this.entropyThreshold
+    ) {
       return true;
     }
 

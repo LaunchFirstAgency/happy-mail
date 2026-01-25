@@ -1,6 +1,9 @@
-import { EmailVerificationResponse, IEmailVerificationService } from "@/validation/email-validation.service";
-import { EmailVerificationInfoCodes } from "@/validation/email-verification";
-import { Logger } from "@/util";
+import {
+  EmailVerificationResponse,
+  IEmailVerificationService,
+} from '@/validation/email-validation.service';
+import { EmailVerificationInfoCodes } from '@/validation/email-verification';
+import { Logger } from '@/util';
 
 /**
  * Error types from NeverBounce API
@@ -13,12 +16,12 @@ import { Logger } from "@/util";
  * @see https://developers.neverbounce.com/reference/single-check
  */
 export class NeverBounceService implements IEmailVerificationService {
-  protected readonly NEVER_BOUNCE_API_KEY: string = process.env.NEVER_BOUNCE_API_KEY ?? "";
+  protected readonly NEVER_BOUNCE_API_KEY: string = process.env.NEVER_BOUNCE_API_KEY ?? '';
 
   constructor({ apiKey }: { apiKey: string }) {
     if (!apiKey) {
-      Logger.error("NEVER_BOUNCE_API_KEY not set");
-      throw new Error("NEVER_BOUNCE_API_KEY not set");
+      Logger.error('NEVER_BOUNCE_API_KEY not set');
+      throw new Error('NEVER_BOUNCE_API_KEY not set');
     }
 
     this.NEVER_BOUNCE_API_KEY = apiKey;
@@ -40,10 +43,10 @@ export class NeverBounceService implements IEmailVerificationService {
         `https://api.neverbounce.com/v4.2/single/check?key=${this.NEVER_BOUNCE_API_KEY}&email=${encodedEmail}&timeout=10`,
         {
           headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
           },
-        },
+        }
       );
 
       const data = await response.json();
@@ -57,23 +60,23 @@ export class NeverBounceService implements IEmailVerificationService {
       if (!data) {
         return {
           success: false,
-          info: "Invalid API response - missing result",
+          info: 'Invalid API response - missing result',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       }
 
       return {
         success: true,
-        info: `${data.result}${data.flags && data.flags.length ? ` - ${data.flags.join(", ")}` : ""}`,
+        info: `${data.result}${data.flags && data.flags.length ? ` - ${data.flags.join(', ')}` : ''}`,
         addr: email,
         result: data.result,
         code: this.mapResultToCode(data.result),
       };
     } catch (error: any) {
       // Handle HTTP errors (4xx/5xx)
-      Logger.error("NeverBounce API request failed:", error);
+      Logger.error('NeverBounce API request failed:', error);
 
       // Check for specific HTTP error status codes
       if (error.response) {
@@ -82,25 +85,25 @@ export class NeverBounceService implements IEmailVerificationService {
         if (statusCode === 413) {
           return {
             success: false,
-            info: "Email too large to process",
+            info: 'Email too large to process',
             addr: email,
-            result: "unknown",
+            result: 'unknown',
             code: EmailVerificationInfoCodes.SMTPConnectionError,
           };
         } else if (statusCode >= 500) {
           return {
             success: false,
-            info: "NeverBounce service temporarily unavailable",
+            info: 'NeverBounce service temporarily unavailable',
             addr: email,
-            result: "unknown",
+            result: 'unknown',
             code: EmailVerificationInfoCodes.SMTPConnectionError,
           };
         } else if (statusCode === 429) {
           return {
             success: false,
-            info: "Rate limit exceeded",
+            info: 'Rate limit exceeded',
             addr: email,
-            result: "unknown",
+            result: 'unknown',
             code: EmailVerificationInfoCodes.SMTPConnectionError,
           };
         }
@@ -108,9 +111,9 @@ export class NeverBounceService implements IEmailVerificationService {
 
       return {
         success: false,
-        info: "Failed to verify email with NeverBounce",
+        info: 'Failed to verify email with NeverBounce',
         addr: email,
-        result: "unknown",
+        result: 'unknown',
         code: EmailVerificationInfoCodes.SMTPConnectionError,
       };
     }
@@ -119,51 +122,54 @@ export class NeverBounceService implements IEmailVerificationService {
   /**
    * Handle error responses from the NeverBounce API
    */
-  private handleErrorResponse(response: NeverBounceResponse, email: string): EmailVerificationResponse {
+  private handleErrorResponse(
+    response: NeverBounceResponse,
+    email: string
+  ): EmailVerificationResponse {
     switch (response.status) {
       case NeverBounceErrorType.AuthFailure:
-        Logger.error("NeverBounce authentication failure", response.message);
+        Logger.error('NeverBounce authentication failure', response.message);
         return {
           success: false,
-          info: "API authentication failure",
+          info: 'API authentication failure',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       case NeverBounceErrorType.ThrottleTriggered:
-        Logger.error("NeverBounce rate limit exceeded", response.message);
+        Logger.error('NeverBounce rate limit exceeded', response.message);
         return {
           success: false,
-          info: "Rate limit exceeded",
+          info: 'Rate limit exceeded',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       case NeverBounceErrorType.TempUnavail:
-        Logger.error("NeverBounce temporarily unavailable", response.message);
+        Logger.error('NeverBounce temporarily unavailable', response.message);
         return {
           success: false,
-          info: "Service temporarily unavailable",
+          info: 'Service temporarily unavailable',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       case NeverBounceErrorType.BadReferrer:
-        Logger.error("NeverBounce bad referrer", response.message);
+        Logger.error('NeverBounce bad referrer', response.message);
         return {
           success: false,
-          info: "API credentials referrer issue",
+          info: 'API credentials referrer issue',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
       default:
         Logger.error(`NeverBounce general error: ${response.status}`, response.message);
         return {
           success: false,
-          info: response.message || "Unknown error occurred",
+          info: response.message || 'Unknown error occurred',
           addr: email,
-          result: "unknown",
+          result: 'unknown',
           code: EmailVerificationInfoCodes.SMTPConnectionError,
         };
     }
@@ -174,15 +180,15 @@ export class NeverBounceService implements IEmailVerificationService {
    */
   private mapResultToCode(result: NeverBounceResultType): EmailVerificationInfoCodes {
     switch (result) {
-      case "valid":
+      case 'valid':
         return EmailVerificationInfoCodes.FinishedVerification;
-      case "invalid":
+      case 'invalid':
         return EmailVerificationInfoCodes.SMTPConnectionError;
-      case "disposable":
+      case 'disposable':
         return EmailVerificationInfoCodes.DomainNotFound;
-      case "catchall":
+      case 'catchall':
         return EmailVerificationInfoCodes.FinishedVerification;
-      case "unknown":
+      case 'unknown':
         return EmailVerificationInfoCodes.SMTPConnectionError;
       default:
         return EmailVerificationInfoCodes.SMTPConnectionError;
@@ -190,14 +196,14 @@ export class NeverBounceService implements IEmailVerificationService {
   }
 }
 export enum NeverBounceErrorType {
-  GeneralFailure = "general_failure",
-  AuthFailure = "auth_failure",
-  TempUnavail = "temp_unavail",
-  ThrottleTriggered = "throttle_triggered",
-  BadReferrer = "bad_referrer",
+  GeneralFailure = 'general_failure',
+  AuthFailure = 'auth_failure',
+  TempUnavail = 'temp_unavail',
+  ThrottleTriggered = 'throttle_triggered',
+  BadReferrer = 'bad_referrer',
 }
 interface NeverBounceResponse {
-  status: "success" | NeverBounceErrorType;
+  status: 'success' | NeverBounceErrorType;
   result?: NeverBounceResultType;
   flags?: NeverBounceFlagTypes[] | string[];
   suggested_correction?: string;
@@ -205,29 +211,29 @@ interface NeverBounceResponse {
   message?: string; // Error message when status is not success
 }
 
-export type NeverBounceResultType = "valid" | "invalid" | "disposable" | "catchall" | "unknown";
+export type NeverBounceResultType = 'valid' | 'invalid' | 'disposable' | 'catchall' | 'unknown';
 
 export enum NeverBounceFlagTypes {
-  "has_dns" = "has_dns",
-  "has_dns_mx" = "has_dns_mx",
-  "bad_syntax" = "bad_syntax",
-  "free_email_host" = "free_email_host",
-  "profanity" = "profanity",
-  "role_account" = "role_account",
-  "disposable_email" = "disposable_email",
-  "government_host" = "government_host",
-  "academic_host" = "academic_host",
-  "military_host" = "military_host",
-  "international_host" = "international_host",
-  "squatter_host" = "squatter_host",
-  "spelling_mistake" = "spelling_mistake",
-  "bad_dns" = "bad_dns",
-  "temporary_dns_error" = "temporary_dns_error",
-  "connect_fails" = "connect_fails",
-  "accepts_all" = "accepts_all",
-  "contains_alias" = "contains_alias",
-  "contains_subdomain" = "contains_subdomain",
-  "smtp_connectable" = "smtp_connectable",
-  "spamtrap_network" = "spamtrap_network",
-  "historical_response" = "historical_response",
+  'has_dns' = 'has_dns',
+  'has_dns_mx' = 'has_dns_mx',
+  'bad_syntax' = 'bad_syntax',
+  'free_email_host' = 'free_email_host',
+  'profanity' = 'profanity',
+  'role_account' = 'role_account',
+  'disposable_email' = 'disposable_email',
+  'government_host' = 'government_host',
+  'academic_host' = 'academic_host',
+  'military_host' = 'military_host',
+  'international_host' = 'international_host',
+  'squatter_host' = 'squatter_host',
+  'spelling_mistake' = 'spelling_mistake',
+  'bad_dns' = 'bad_dns',
+  'temporary_dns_error' = 'temporary_dns_error',
+  'connect_fails' = 'connect_fails',
+  'accepts_all' = 'accepts_all',
+  'contains_alias' = 'contains_alias',
+  'contains_subdomain' = 'contains_subdomain',
+  'smtp_connectable' = 'smtp_connectable',
+  'spamtrap_network' = 'spamtrap_network',
+  'historical_response' = 'historical_response',
 }

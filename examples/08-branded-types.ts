@@ -19,7 +19,7 @@ import {
   isValid,
   isSafeToSend,
   normalizeEmailAddress,
-} from "../src/index";
+} from '../src/index';
 
 // ============================================================================
 // Type-Safe Functions
@@ -52,27 +52,27 @@ function checkDuplicate(email: NormalizedEmail): boolean {
 
   // Simulate database check
   const existingEmails: NormalizedEmail[] = [
-    "user@example.com" as NormalizedEmail,
-    "admin@example.com" as NormalizedEmail,
+    'user@example.com' as NormalizedEmail,
+    'admin@example.com' as NormalizedEmail,
   ];
 
   return existingEmails.includes(email);
 }
 
 async function main() {
-  const client = new HappyEmailClient({ preset: "production" });
+  const client = new HappyEmailClient({ preset: 'production' });
 
-  console.log("=".repeat(60));
-  console.log("Branded Types Example");
-  console.log("=".repeat(60));
+  console.log('='.repeat(60));
+  console.log('Branded Types Example');
+  console.log('='.repeat(60));
 
   // ============================================================================
   // 1. ValidatedEmail - Basic Validation
   // ============================================================================
-  console.log("\n1. ValidatedEmail - Basic Validation");
-  console.log("-".repeat(60));
+  console.log('\n1. ValidatedEmail - Basic Validation');
+  console.log('-'.repeat(60));
 
-  const email1 = "user@example.com";
+  const email1 = 'user@example.com';
   console.log(`Validating: ${email1}`);
 
   const result1 = await client.validateEmail(email1);
@@ -81,23 +81,19 @@ async function main() {
     // Type assertion after validation
     const validatedEmail = result1.email as ValidatedEmail;
 
-    console.log("✅ Email passed validation");
-    sendTransactionalEmail(
-      validatedEmail,
-      "Welcome!",
-      "Thanks for signing up"
-    );
+    console.log('✅ Email passed validation');
+    sendTransactionalEmail(validatedEmail, 'Welcome!', 'Thanks for signing up');
   } else {
-    console.log("❌ Email failed validation");
+    console.log('❌ Email failed validation');
   }
 
   // ============================================================================
   // 2. SafeEmail - Stricter Validation
   // ============================================================================
-  console.log("\n2. SafeEmail - Stricter Validation");
-  console.log("-".repeat(60));
+  console.log('\n2. SafeEmail - Stricter Validation');
+  console.log('-'.repeat(60));
 
-  const email2 = "customer@example.com";
+  const email2 = 'customer@example.com';
   console.log(`Validating: ${email2}`);
 
   const result2 = await client.fullCheck(email2);
@@ -106,19 +102,19 @@ async function main() {
     // Type assertion for safe emails
     const safeEmail = result2.email as SafeEmail;
 
-    console.log("✅ Email is safe to send to");
-    sendMarketingEmail(safeEmail, "Summer Sale 2025");
+    console.log('✅ Email is safe to send to');
+    sendMarketingEmail(safeEmail, 'Summer Sale 2025');
   } else {
-    console.log("⚠️  Email is not safe for marketing");
+    console.log('⚠️  Email is not safe for marketing');
   }
 
   // ============================================================================
   // 3. NormalizedEmail - Duplicate Detection
   // ============================================================================
-  console.log("\n3. NormalizedEmail - Duplicate Detection");
-  console.log("-".repeat(60));
+  console.log('\n3. NormalizedEmail - Duplicate Detection');
+  console.log('-'.repeat(60));
 
-  const email3 = "User@Example.com";
+  const email3 = 'User@Example.com';
   console.log(`Checking: ${email3}`);
 
   const result3 = await client.validateAndNormalize(email3);
@@ -130,16 +126,16 @@ async function main() {
     console.log(`Normalized: ${result3.normalized}`);
 
     const isDuplicate = checkDuplicate(normalizedEmail);
-    console.log(`Is duplicate: ${isDuplicate ? "Yes" : "No"}`);
+    console.log(`Is duplicate: ${isDuplicate ? 'Yes' : 'No'}`);
   }
 
   // ============================================================================
   // 4. Type Guards
   // ============================================================================
-  console.log("\n4. Type Guards (Runtime Checks)");
-  console.log("-".repeat(60));
+  console.log('\n4. Type Guards (Runtime Checks)');
+  console.log('-'.repeat(60));
 
-  const testEmail = "test@example.com";
+  const testEmail = 'test@example.com';
 
   // Type guards return boolean and narrow the type
   if (isValidatedEmail(testEmail)) {
@@ -161,10 +157,10 @@ async function main() {
   // ============================================================================
   // 5. Type Assertions
   // ============================================================================
-  console.log("\n5. Type Assertions");
-  console.log("-".repeat(60));
+  console.log('\n5. Type Assertions');
+  console.log('-'.repeat(60));
 
-  const email4 = "assert@example.com";
+  const email4 = 'assert@example.com';
   console.log(`Testing: ${email4}\n`);
 
   try {
@@ -172,7 +168,7 @@ async function main() {
     assertValidatedEmail(email4);
     console.log("❌ This won't print (assertion should throw for unbranded string)");
   } catch (error) {
-    console.log("✅ Assertion correctly threw for unbranded string");
+    console.log('✅ Assertion correctly threw for unbranded string');
   }
 
   // After validation, assertion succeeds
@@ -182,55 +178,55 @@ async function main() {
 
     try {
       assertValidatedEmail(brandedEmail);
-      console.log("✅ Assertion passed for branded email");
+      console.log('✅ Assertion passed for branded email');
 
       // Now TypeScript knows this is validated
-      sendTransactionalEmail(brandedEmail, "Test", "Body");
+      sendTransactionalEmail(brandedEmail, 'Test', 'Body');
     } catch (error) {
-      console.log("❌ Unexpected error");
+      console.log('❌ Unexpected error');
     }
   }
 
   // ============================================================================
   // 6. Type Hierarchy
   // ============================================================================
-  console.log("\n6. Type Hierarchy");
-  console.log("-".repeat(60));
+  console.log('\n6. Type Hierarchy');
+  console.log('-'.repeat(60));
 
-  console.log("\nType relationships:");
-  console.log("  SafeEmail extends ValidatedEmail");
-  console.log("  ValidatedEmail extends string");
-  console.log("  NormalizedEmail extends string\n");
+  console.log('\nType relationships:');
+  console.log('  SafeEmail extends ValidatedEmail');
+  console.log('  ValidatedEmail extends string');
+  console.log('  NormalizedEmail extends string\n');
 
-  const email5 = "hierarchy@example.com";
+  const email5 = 'hierarchy@example.com';
   const result5 = await client.fullCheck(email5);
 
   if (isSafeToSend(result5)) {
     const safeEmail = result5.email as SafeEmail;
 
     // SafeEmail can be used where ValidatedEmail is expected
-    console.log("✅ SafeEmail works as ValidatedEmail:");
-    sendTransactionalEmail(safeEmail, "Test", "Body");
+    console.log('✅ SafeEmail works as ValidatedEmail:');
+    sendTransactionalEmail(safeEmail, 'Test', 'Body');
 
     // SafeEmail also works for marketing
-    console.log("\n✅ SafeEmail works for marketing:");
-    sendMarketingEmail(safeEmail, "Campaign");
+    console.log('\n✅ SafeEmail works for marketing:');
+    sendMarketingEmail(safeEmail, 'Campaign');
   }
 
   // ============================================================================
   // 7. Practical Workflow
   // ============================================================================
-  console.log("\n7. Practical Workflow");
-  console.log("-".repeat(60));
+  console.log('\n7. Practical Workflow');
+  console.log('-'.repeat(60));
 
-  console.log("\nSignup flow with type safety:\n");
+  console.log('\nSignup flow with type safety:\n');
 
   async function signupUser(email: string, password: string) {
     // Step 1: Validate
     const validation = await client.validateEmail(email);
 
     if (!isValid(validation)) {
-      throw new Error("Invalid email");
+      throw new Error('Invalid email');
     }
 
     const validatedEmail = validation.email as ValidatedEmail;
@@ -240,22 +236,22 @@ async function main() {
     const normalizedEmail = normalized as NormalizedEmail;
 
     if (checkDuplicate(normalizedEmail)) {
-      throw new Error("Email already registered");
+      throw new Error('Email already registered');
     }
 
     // Step 3: Create account
-    console.log("  → Creating account...");
+    console.log('  → Creating account...');
     // await database.createUser({ email: normalizedEmail, password });
 
     // Step 4: Send welcome email
-    console.log("  → Sending welcome email...");
-    sendTransactionalEmail(validatedEmail, "Welcome!", "Thanks for joining!");
+    console.log('  → Sending welcome email...');
+    sendTransactionalEmail(validatedEmail, 'Welcome!', 'Thanks for joining!');
 
-    console.log("  ✅ User signed up successfully!");
+    console.log('  ✅ User signed up successfully!');
   }
 
   try {
-    await signupUser("newuser@example.com", "password123");
+    await signupUser('newuser@example.com', 'password123');
   } catch (error) {
     if (error instanceof Error) {
       console.log(`  ❌ Signup failed: ${error.message}`);
@@ -265,32 +261,32 @@ async function main() {
   // ============================================================================
   // 8. Benefits of Branded Types
   // ============================================================================
-  console.log("\n8. Benefits of Branded Types");
-  console.log("-".repeat(60));
+  console.log('\n8. Benefits of Branded Types');
+  console.log('-'.repeat(60));
 
-  console.log("\n✅ Compile-Time Safety:");
-  console.log("  - TypeScript prevents passing unvalidated emails");
-  console.log("  - Catches errors before runtime");
-  console.log("  - Better IDE autocomplete and type checking");
+  console.log('\n✅ Compile-Time Safety:');
+  console.log('  - TypeScript prevents passing unvalidated emails');
+  console.log('  - Catches errors before runtime');
+  console.log('  - Better IDE autocomplete and type checking');
 
-  console.log("\n✅ Self-Documenting Code:");
-  console.log("  - Function signatures show validation requirements");
-  console.log("  - Clear intent: ValidatedEmail vs SafeEmail vs NormalizedEmail");
-  console.log("  - Easier to understand and maintain");
+  console.log('\n✅ Self-Documenting Code:');
+  console.log('  - Function signatures show validation requirements');
+  console.log('  - Clear intent: ValidatedEmail vs SafeEmail vs NormalizedEmail');
+  console.log('  - Easier to understand and maintain');
 
-  console.log("\n✅ Runtime Safety:");
-  console.log("  - Type guards provide runtime checks");
-  console.log("  - Assertions throw on invalid data");
-  console.log("  - Combine with compile-time safety");
+  console.log('\n✅ Runtime Safety:');
+  console.log('  - Type guards provide runtime checks');
+  console.log('  - Assertions throw on invalid data');
+  console.log('  - Combine with compile-time safety');
 
-  console.log("\n💡 Best Practices:");
-  console.log("  1. Validate at system boundaries (user input, APIs)");
-  console.log("  2. Use branded types throughout your codebase");
-  console.log("  3. Type guards for runtime validation");
-  console.log("  4. Assertions for debugging");
-  console.log("  5. Choose right type: Validated vs Safe vs Normalized");
+  console.log('\n💡 Best Practices:');
+  console.log('  1. Validate at system boundaries (user input, APIs)');
+  console.log('  2. Use branded types throughout your codebase');
+  console.log('  3. Type guards for runtime validation');
+  console.log('  4. Assertions for debugging');
+  console.log('  5. Choose right type: Validated vs Safe vs Normalized');
 
-  console.log("\n" + "=".repeat(60));
+  console.log('\n' + '='.repeat(60));
 }
 
 // Run the example

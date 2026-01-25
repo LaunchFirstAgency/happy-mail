@@ -10,23 +10,23 @@ import {
   isSafeToSend,
   getRiskLevel,
   getScore,
-} from "@launchfirstagency/happy-mail";
+} from '@launchfirstagency/happy-mail';
 
 async function demonstrateBatchValidation() {
-  console.log("=== Batch Email Validation ===\n");
+  console.log('=== Batch Email Validation ===\n');
 
   const client = new HappyEmailClient();
 
   // List of emails to validate
   const emails = [
-    "user1@gmail.com",
-    "user2@example.com",
-    "test@disposable.com",
-    "invalid-email",
-    "abc123xyz@example.com",
-    "business@company.com",
-    "john.doe@outlook.com",
-    "random987xyz@test.com",
+    'user1@gmail.com',
+    'user2@example.com',
+    'test@disposable.com',
+    'invalid-email',
+    'abc123xyz@example.com',
+    'business@company.com',
+    'john.doe@outlook.com',
+    'random987xyz@test.com',
   ];
 
   console.log(`Validating ${emails.length} emails...\n`);
@@ -41,7 +41,7 @@ async function demonstrateBatchValidation() {
     continueOnError: true, // Keep going even if some fail
   });
 
-  console.log("\n=== Validation Results ===\n");
+  console.log('\n=== Validation Results ===\n');
 
   // Process and categorize results
   const safeEmails: string[] = [];
@@ -61,13 +61,11 @@ async function demonstrateBatchValidation() {
     const score = getScore(result.result);
     const safe = isSafeToSend(result.result);
 
-    console.log(
-      `${safe ? "✅" : "⚠️ "} ${result.email}: ${riskLevel} risk (score: ${score}/100)`
-    );
+    console.log(`${safe ? '✅' : '⚠️ '} ${result.email}: ${riskLevel} risk (score: ${score}/100)`);
 
     if (safe) {
       safeEmails.push(result.email);
-    } else if (riskLevel === "low" || riskLevel === "medium") {
+    } else if (riskLevel === 'low' || riskLevel === 'medium') {
       riskyEmails.push(result.email);
     } else {
       invalidEmails.push(result.email);
@@ -75,23 +73,23 @@ async function demonstrateBatchValidation() {
   }
 
   // Summary statistics
-  console.log("\n=== Summary ===");
+  console.log('\n=== Summary ===');
   console.log(`Total emails: ${emails.length}`);
   console.log(`Safe to send: ${safeEmails.length}`);
   console.log(`Risky: ${riskyEmails.length}`);
   console.log(`Invalid: ${invalidEmails.length}`);
 
   // Show which emails to use
-  console.log("\n=== Safe Emails ===");
+  console.log('\n=== Safe Emails ===');
   safeEmails.forEach((email) => console.log(`  ✓ ${email}`));
 
   if (riskyEmails.length > 0) {
-    console.log("\n=== Risky Emails (Review Recommended) ===");
+    console.log('\n=== Risky Emails (Review Recommended) ===');
     riskyEmails.forEach((email) => console.log(`  ⚠ ${email}`));
   }
 
   if (invalidEmails.length > 0) {
-    console.log("\n=== Invalid Emails (Do Not Use) ===");
+    console.log('\n=== Invalid Emails (Do Not Use) ===');
     invalidEmails.forEach((email) => console.log(`  ✗ ${email}`));
   }
 }

@@ -1,4 +1,4 @@
-import { connect } from "node:tls";
+import { connect } from 'node:tls';
 
 export interface CertificateInfo {
   valid: boolean;
@@ -37,14 +37,16 @@ export async function checkSSLCertificate(domain: string): Promise<CertificateIn
       rejectUnauthorized: false, // Allow self-signed certificates
     });
 
-    socket.on("secureConnect", () => {
+    socket.on('secureConnect', () => {
       const cert = socket.getPeerCertificate();
 
       if (cert) {
         const now = new Date();
         const validFrom = new Date(cert.valid_from);
         const validTo = new Date(cert.valid_to);
-        const daysRemaining = Math.ceil((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.ceil(
+          (validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
 
         const certInfo: CertificateInfo = {
           valid: socket.authorized,
@@ -57,13 +59,13 @@ export async function checkSSLCertificate(domain: string): Promise<CertificateIn
 
         resolve(certInfo);
       } else {
-        reject(new Error("No certificate information available"));
+        reject(new Error('No certificate information available'));
       }
 
       socket.end();
     });
 
-    socket.on("error", (error) => {
+    socket.on('error', (error) => {
       reject(error);
     });
   });

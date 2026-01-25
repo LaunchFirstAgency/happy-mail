@@ -1,2 +1,2 @@
-export * from "./email-validation.service";
-export * from "./email-verification";
+export * from './email-validation.service';
+export * from './email-verification';

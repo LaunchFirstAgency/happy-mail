@@ -1,4 +1,4 @@
-import { resolveMx, MxRecord } from "node:dns";
+import { resolveMx, MxRecord } from 'node:dns';
 
 export async function resolveMxRecords(domain: string): Promise<MxRecord[]> {
   return new Promise((resolve, reject) => {

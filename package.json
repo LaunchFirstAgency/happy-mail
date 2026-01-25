@@ -28,7 +28,9 @@
     "build": "tsup",
     "test": "jest",
     "prepublish": "npm run build",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write ."
   },
   "engines": {
     "node": ">=20",
@@ -52,8 +54,12 @@
     "typescript": "^5.8.3"
   },
   "prettier": {
-    "singleQuote": false,
-    "trailingComma": "all",
-    "printWidth": 120
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "semi": true,
+    "arrowParens": "always",
+    "printWidth": 100,
+    "tabWidth": 2,
+    "bracketSpacing": true
   }
 }

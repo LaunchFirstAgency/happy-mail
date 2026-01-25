@@ -22,8 +22,15 @@ import {
   BatchValidationResult,
   ValidateAndNormalizeResult,
   DomainInfo,
-} from "./client";
-import { MailValidatorResponse, MailBoxCanReceiveStatus, EmailType, MXHostType, DomainParts, Email } from "./types";
+} from './client';
+import {
+  MailValidatorResponse,
+  MailBoxCanReceiveStatus,
+  EmailType,
+  MXHostType,
+  DomainParts,
+  Email,
+} from './types';
 import {
   BulkJobRequest,
   BulkJobResponse,
@@ -32,8 +39,8 @@ import {
   JobResultsQuery,
   JobSearchQuery,
   InputLocationType,
-} from "./validation/neverbounce-bulk-verification";
-import { CertificateInfo } from "./util/ssl-checker";
+} from './validation/neverbounce-bulk-verification';
+import { CertificateInfo } from './util/ssl-checker';
 
 // ============================================================================
 // PRIMARY API - Main Client
@@ -71,7 +78,7 @@ export {
   EmailValidationResult,
   type RiskLevel,
   type RejectionReason,
-} from "./validation/result-helpers";
+} from './validation/result-helpers';
 
 // ============================================================================
 // CONFIGURATION - Presets and Options
@@ -90,7 +97,7 @@ export {
   LENIENT_PRESET,
   PRESET_DESCRIPTIONS,
   type PresetName,
-} from "./presets";
+} from './presets';
 
 // ============================================================================
 // ERROR HANDLING - Custom Errors and Retry Utilities
@@ -111,7 +118,7 @@ export {
   isHappyMailError,
   isRecoverableError,
   type RetryConfig,
-} from "./errors";
+} from './errors';
 
 // ============================================================================
 // TYPE SAFETY - Branded Types
@@ -131,7 +138,7 @@ export {
   assertValidatedEmail,
   assertSafeEmail,
   assertNormalizedEmail,
-} from "./types/branded";
+} from './types/branded';
 
 // ============================================================================
 // TYPES - Response and Configuration Types
@@ -176,29 +183,19 @@ export {
  * Email validation and manipulation utilities
  * @public
  */
-export {
-  isValidEmail,
-  normalizeEmailAddress,
-  splitEmailDomain,
-} from "./util/helpers";
+export { isValidEmail, normalizeEmailAddress, splitEmailDomain } from './util/helpers';
 
 /**
  * MX record utilities
  * @public
  */
-export {
-  resolveMxRecords,
-  checkPort,
-  lowestPriorityMxRecord,
-} from "./util/mx";
+export { resolveMxRecords, checkPort, lowestPriorityMxRecord } from './util/mx';
 
 /**
  * String and entropy utilities
  * @public
  */
-export {
-  calculateStringEntropy,
-} from "./util/string-utils";
+export { calculateStringEntropy } from './util/string-utils';
 
 /**
  * SSL certificate utilities
@@ -209,31 +206,25 @@ export {
   getDaysBetween,
   getDaysRemaining,
   type CertificateInfo,
-} from "./util/ssl-checker";
+} from './util/ssl-checker';
 
 /**
  * Domain age and WHOIS utilities
  * @public
  */
-export {
-  whois,
-} from "./util/domain-expiry";
+export { whois } from './util/domain-expiry';
 
 /**
  * Spam checking utilities
  * @public
  */
-export {
-  checkSpamList,
-} from "./inbox-health/spam-check";
+export { checkSpamList } from './inbox-health/spam-check';
 
 /**
  * Logging utilities
  * @public
  */
-export {
-  Logger,
-} from "./util/logger";
+export { Logger } from './util/logger';
 
 // ============================================================================
 // DEFAULT EXPORT

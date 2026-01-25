@@ -9,31 +9,31 @@
  */
 export enum ErrorCode {
   // Validation Errors (1xxx)
-  INVALID_EMAIL_SYNTAX = "INVALID_EMAIL_SYNTAX",
-  INVALID_DOMAIN = "INVALID_DOMAIN",
-  DISPOSABLE_DOMAIN = "DISPOSABLE_DOMAIN",
-  VALIDATION_FAILED = "VALIDATION_FAILED",
+  INVALID_EMAIL_SYNTAX = 'INVALID_EMAIL_SYNTAX',
+  INVALID_DOMAIN = 'INVALID_DOMAIN',
+  DISPOSABLE_DOMAIN = 'DISPOSABLE_DOMAIN',
+  VALIDATION_FAILED = 'VALIDATION_FAILED',
 
   // Network Errors (2xxx)
-  NETWORK_ERROR = "NETWORK_ERROR",
-  TIMEOUT = "TIMEOUT",
-  CONNECTION_REFUSED = "CONNECTION_REFUSED",
-  DNS_LOOKUP_FAILED = "DNS_LOOKUP_FAILED",
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  TIMEOUT = 'TIMEOUT',
+  CONNECTION_REFUSED = 'CONNECTION_REFUSED',
+  DNS_LOOKUP_FAILED = 'DNS_LOOKUP_FAILED',
 
   // API Errors (3xxx)
-  API_ERROR = "API_ERROR",
-  API_KEY_MISSING = "API_KEY_MISSING",
-  API_KEY_INVALID = "API_KEY_INVALID",
-  RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
-  QUOTA_EXCEEDED = "QUOTA_EXCEEDED",
-  API_UNAVAILABLE = "API_UNAVAILABLE",
+  API_ERROR = 'API_ERROR',
+  API_KEY_MISSING = 'API_KEY_MISSING',
+  API_KEY_INVALID = 'API_KEY_INVALID',
+  RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
+  QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
+  API_UNAVAILABLE = 'API_UNAVAILABLE',
 
   // Configuration Errors (4xxx)
-  INVALID_CONFIGURATION = "INVALID_CONFIGURATION",
-  MISSING_REQUIRED_OPTION = "MISSING_REQUIRED_OPTION",
+  INVALID_CONFIGURATION = 'INVALID_CONFIGURATION',
+  MISSING_REQUIRED_OPTION = 'MISSING_REQUIRED_OPTION',
 
   // Unknown Errors
-  UNKNOWN_ERROR = "UNKNOWN_ERROR",
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 }
 
 /**
@@ -216,8 +216,7 @@ export class APIError extends HappyMailError {
     const isRecoverable =
       options?.isRecoverable ??
       // Rate limits and unavailable API are recoverable
-      (code === ErrorCode.RATE_LIMIT_EXCEEDED ||
-      code === ErrorCode.API_UNAVAILABLE);
+      (code === ErrorCode.RATE_LIMIT_EXCEEDED || code === ErrorCode.API_UNAVAILABLE);
 
     super(message, code, {
       ...options,
@@ -311,13 +310,7 @@ export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   config: RetryConfig = {}
 ): Promise<T> {
-  const {
-    maxAttempts,
-    initialDelay,
-    maxDelay,
-    backoffMultiplier,
-    jitter,
-  } = {
+  const { maxAttempts, initialDelay, maxDelay, backoffMultiplier, jitter } = {
     ...DEFAULT_RETRY_CONFIG,
     ...config,
   };

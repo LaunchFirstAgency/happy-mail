@@ -1,11 +1,14 @@
-import { EmailValidationService, type IEmailVerificationService } from "@/validation/email-validation.service";
-import { InboxHealthService } from "@/inbox-health/inbox-health.service";
-import { NeverBounceService } from "@/validation/neverbounce-verification";
-import { EmailVerificationService } from "@/validation/email-verification";
-import { MailValidatorResponse, MXHostType } from "@/types";
-import { RecordLookup } from "@/inbox-health/inbox-health.service";
-import { Logger, normalizeEmailAddress } from "@/util";
-import { NeverBounceBulkVerification } from "./validation/neverbounce-bulk-verification";
+import {
+  EmailValidationService,
+  type IEmailVerificationService,
+} from '@/validation/email-validation.service';
+import { InboxHealthService } from '@/inbox-health/inbox-health.service';
+import { NeverBounceService } from '@/validation/neverbounce-verification';
+import { EmailVerificationService } from '@/validation/email-verification';
+import { MailValidatorResponse, MXHostType } from '@/types';
+import { RecordLookup } from '@/inbox-health/inbox-health.service';
+import { Logger, normalizeEmailAddress } from '@/util';
+import { NeverBounceBulkVerification } from './validation/neverbounce-bulk-verification';
 import type {
   BulkJobRequest,
   BulkJobResponse,
@@ -13,10 +16,10 @@ import type {
   BulkJobResults,
   JobResultsQuery,
   JobSearchQuery,
-} from "./validation/neverbounce-bulk-verification";
-import { getPreset, type PresetName } from "./presets";
-import { isValid } from "./validation/result-helpers";
-import { ConfigurationError, ErrorCode } from "./errors";
+} from './validation/neverbounce-bulk-verification';
+import { getPreset, type PresetName } from './presets';
+import { isValid } from './validation/result-helpers';
+import { ConfigurationError, ErrorCode } from './errors';
 
 /**
  * Configuration options for HappyEmailClient
@@ -73,7 +76,7 @@ export interface DomainInfo {
   /** Overall health score (0-100) */
   healthScore: number;
   /** Health assessment */
-  assessment: "excellent" | "good" | "fair" | "poor";
+  assessment: 'excellent' | 'good' | 'fair' | 'poor';
 }
 
 /**
@@ -139,7 +142,9 @@ export class HappyEmailClient {
     if (options.emailVerificationService) {
       emailVerificationService = options.emailVerificationService;
     } else if (options.neverBounceApiKey) {
-      emailVerificationService = new NeverBounceService({ apiKey: options.neverBounceApiKey });
+      emailVerificationService = new NeverBounceService({
+        apiKey: options.neverBounceApiKey,
+      });
       // Initialize bulk verification if NeverBounce API key is provided
       this.bulkVerification = new NeverBounceBulkVerification(options.neverBounceApiKey);
     } else {
@@ -170,9 +175,11 @@ export class HappyEmailClient {
     if (options.entropyThreshold !== undefined) {
       if (options.entropyThreshold < 0 || options.entropyThreshold > 10) {
         throw new ConfigurationError(
-          "entropyThreshold must be between 0 and 10",
+          'entropyThreshold must be between 0 and 10',
           ErrorCode.INVALID_CONFIGURATION,
-          { context: { entropyThreshold: options.entropyThreshold } }
+          {
+            context: { entropyThreshold: options.entropyThreshold },
+          }
         );
       }
     }
@@ -180,9 +187,13 @@ export class HappyEmailClient {
     if (options.minLengthForRandomCheck !== undefined) {
       if (options.minLengthForRandomCheck < 0) {
         throw new ConfigurationError(
-          "minLengthForRandomCheck must be non-negative",
+          'minLengthForRandomCheck must be non-negative',
           ErrorCode.INVALID_CONFIGURATION,
-          { context: { minLengthForRandomCheck: options.minLengthForRandomCheck } }
+          {
+            context: {
+              minLengthForRandomCheck: options.minLengthForRandomCheck,
+            },
+          }
         );
       }
     }
@@ -190,7 +201,7 @@ export class HappyEmailClient {
 
   private ensureBulkVerification(): void {
     if (!this.bulkVerification) {
-      throw new Error("NeverBounce API key is required for bulk operations");
+      throw new Error('NeverBounce API key is required for bulk operations');
     }
   }
 
@@ -202,12 +213,14 @@ export class HappyEmailClient {
    */
   async validateEmail(email: string, skipBounceCheck?: boolean): Promise<MailValidatorResponse> {
     const shouldSkipBounceCheck =
-      skipBounceCheck !== undefined ? skipBounceCheck : this.options.skipBounceCheckByDefault || false;
+      skipBounceCheck !== undefined
+        ? skipBounceCheck
+        : this.options.skipBounceCheckByDefault || false;
 
     try {
       return await this.emailValidationService.validate(email, shouldSkipBounceCheck);
     } catch (error) {
-      Logger.error("Failed to validate email", error);
+      Logger.error('Failed to validate email', error);
       throw error;
     }
   }
@@ -219,13 +232,11 @@ export class HappyEmailClient {
    * @param options Batch validation options including concurrency and progress callback
    * @returns Array of batch validation results
    */
-  async validateBatch(emails: string[], options: BatchValidationOptions = {}): Promise<BatchValidationResult[]> {
-    const {
-      concurrency = 5,
-      skipBounceCheck,
-      onProgress,
-      continueOnError = true,
-    } = options;
+  async validateBatch(
+    emails: string[],
+    options: BatchValidationOptions = {}
+  ): Promise<BatchValidationResult[]> {
+    const { concurrency = 5, skipBounceCheck, onProgress, continueOnError = true } = options;
 
     const results: BatchValidationResult[] = [];
     const total = emails.length;
@@ -296,7 +307,8 @@ export class HappyEmailClient {
 
     let normalized: string | undefined;
     if (valid && validation.normalizedEmail) {
-      normalized = typeof validation.normalizedEmail === 'string' ? validation.normalizedEmail : undefined;
+      normalized =
+        typeof validation.normalizedEmail === 'string' ? validation.normalizedEmail : undefined;
     } else if (valid) {
       // Fallback normalization using provider info
       normalized = normalizeEmailAddress(email, validation.provider || MXHostType.OTHER);
@@ -436,29 +448,29 @@ export class HappyEmailClient {
     // Calculate health score (0-100)
     let healthScore = 0;
     const checks = [
-      { passed: hasMX, weight: 30 },       // MX is most important
-      { passed: hasSPF, weight: 20 },      // SPF is important
-      { passed: hasDMARC, weight: 20 },    // DMARC is important
-      { passed: hasSSL, weight: 15 },      // SSL is moderately important
+      { passed: hasMX, weight: 30 }, // MX is most important
+      { passed: hasSPF, weight: 20 }, // SPF is important
+      { passed: hasDMARC, weight: 20 }, // DMARC is important
+      { passed: hasSSL, weight: 15 }, // SSL is moderately important
       { passed: domainAge && domainAge >= 1, weight: 15 }, // Age is moderately important
     ];
 
-    checks.forEach(check => {
+    checks.forEach((check) => {
       if (check.passed) {
         healthScore += check.weight;
       }
     });
 
     // Determine assessment
-    let assessment: "excellent" | "good" | "fair" | "poor";
+    let assessment: 'excellent' | 'good' | 'fair' | 'poor';
     if (healthScore >= 85) {
-      assessment = "excellent";
+      assessment = 'excellent';
     } else if (healthScore >= 65) {
-      assessment = "good";
+      assessment = 'good';
     } else if (healthScore >= 40) {
-      assessment = "fair";
+      assessment = 'fair';
     } else {
-      assessment = "poor";
+      assessment = 'poor';
     }
 
     return {

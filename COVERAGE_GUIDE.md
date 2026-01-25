@@ -3,6 +3,7 @@
 ## How Test Coverage Works
 
 Test coverage measures which parts of your code are executed when your tests run. It helps identify:
+
 - **Untested code** - Lines/functions that have no test coverage
 - **Partially tested code** - Branches (if/else) where only some paths are tested
 - **Well-tested code** - Code that's fully exercised by tests
@@ -97,6 +98,7 @@ xdg-open coverage/lcov-report/index.html  # Linux
 ```
 
 The HTML report shows:
+
 - 📊 **Visual coverage** with color-coded files (green = good, red = poor)
 - 🔍 **Click on files** to see exactly which lines are covered/uncovered
 - 🎨 **Highlighted code** showing covered (green) and uncovered (red) lines
@@ -128,6 +130,7 @@ npm run coverage
 ### In CI/CD Pipeline
 
 Most CI/CD systems can:
+
 - Automatically run `npm run coverage`
 - Parse `coverage/lcov.info` or `coverage/clover.xml`
 - Fail builds if coverage drops below a threshold
@@ -140,11 +143,13 @@ Most CI/CD systems can:
 ### Finding What to Test
 
 1. **Run coverage**:
+
    ```bash
    npm run coverage
    ```
 
 2. **Open the HTML report**:
+
    ```bash
    open coverage/lcov-report/index.html
    ```
@@ -167,11 +172,12 @@ To improve:
 3. **Write tests** for those scenarios
 
 For example, if lines 483-551 are bulk verification methods:
+
 ```typescript
 // Add test in src/__test__/client.test.ts
 test('should create bulk job with NeverBounce key', async () => {
   const client = new HappyEmailClient({
-    neverBounceApiKey: 'test-key'
+    neverBounceApiKey: 'test-key',
   });
 
   // Test the bulk job creation
@@ -190,26 +196,26 @@ Your `jest.config.ts` currently has minimal coverage settings. You can enhance i
 ```typescript
 const jestConfig: JestConfigWithTsJest = {
   verbose: true,
-  testMatch: ["<rootDir>/src/**/*.test.ts"],
+  testMatch: ['<rootDir>/src/**/*.test.ts'],
 
   // Coverage configuration
   collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "!src/**/*.d.ts",           // Exclude type definitions
-    "!src/**/__test__/**",      // Exclude test files
-    "!src/**/*.test.ts",        // Exclude test files
-    "!src/**/*.spec.ts",        // Exclude spec files
-    "!src/index.ts",            // Optionally exclude entry point
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.d.ts', // Exclude type definitions
+    '!src/**/__test__/**', // Exclude test files
+    '!src/**/*.test.ts', // Exclude test files
+    '!src/**/*.spec.ts', // Exclude spec files
+    '!src/index.ts', // Optionally exclude entry point
   ],
 
-  coverageDirectory: "coverage",
+  coverageDirectory: 'coverage',
 
   coverageReporters: [
-    "text",           // Terminal output
-    "text-summary",   // Summary in terminal
-    "html",           // HTML report (lcov-report/)
-    "lcov",           // LCOV format (for CI/CD)
-    "clover",         // Clover XML (for some CI tools)
+    'text', // Terminal output
+    'text-summary', // Summary in terminal
+    'html', // HTML report (lcov-report/)
+    'lcov', // LCOV format (for CI/CD)
+    'clover', // Clover XML (for some CI tools)
   ],
 
   // Optional: Enforce minimum coverage thresholds
@@ -303,6 +309,7 @@ coverage/lcov.info
 The `coverage/` directory can get large. **Never commit it to git**!
 
 Add to `.gitignore`:
+
 ```
 # Test coverage
 coverage/
@@ -313,6 +320,7 @@ coverage/
 ### "Coverage is slow"
 
 Coverage adds instrumentation overhead. Use it when needed:
+
 - ✅ Before commits/PRs
 - ✅ In CI/CD
 - ❌ Not during rapid development cycles
@@ -320,6 +328,7 @@ Coverage adds instrumentation overhead. Use it when needed:
 ### "Some files show 0% coverage"
 
 Check if:
+
 1. Files are imported/used in your code
 2. Files are in the `collectCoverageFrom` pattern
 3. Tests actually exercise those files
@@ -366,6 +375,7 @@ git commit -m "Add new feature with tests"
 Install these VSCode extensions for better experience:
 
 1. **Coverage Gutters** - Shows coverage directly in your editor
+
    - Shows green/red dots next to lines
    - Live updates as you write tests
 

@@ -30,16 +30,13 @@ export {
   EmailValidationService,
   type IEmailVerificationService,
   type EmailVerificationResponse,
-} from "./validation/email-validation.service";
+} from './validation/email-validation.service';
 
 /**
  * Inbox health checking service
  * @internal
  */
-export {
-  InboxHealthService,
-  type RecordLookup,
-} from "./inbox-health/inbox-health.service";
+export { InboxHealthService, type RecordLookup } from './inbox-health/inbox-health.service';
 
 /**
  * NeverBounce single email verification service
@@ -49,15 +46,13 @@ export {
   NeverBounceService,
   NeverBounceResultType,
   NeverBounceFlagTypes,
-} from "./validation/neverbounce-verification";
+} from './validation/neverbounce-verification';
 
 /**
  * NeverBounce bulk verification service
  * @internal
  */
-export {
-  NeverBounceBulkVerification,
-} from "./validation/neverbounce-bulk-verification";
+export { NeverBounceBulkVerification } from './validation/neverbounce-bulk-verification';
 
 /**
  * Email verification service (SMTP-based)
@@ -66,7 +61,7 @@ export {
 export {
   EmailVerificationService,
   EmailVerificationInfoCodes,
-} from "./validation/email-verification";
+} from './validation/email-verification';
 
 // ============================================================================
 // NOTE FOR USERS

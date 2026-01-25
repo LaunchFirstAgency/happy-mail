@@ -45,7 +45,9 @@ declare const NORMALIZED_EMAIL_BRAND: unique symbol;
  * }
  * ```
  */
-export type ValidatedEmail = string & { readonly [VALIDATED_EMAIL_BRAND]: true };
+export type ValidatedEmail = string & {
+  readonly [VALIDATED_EMAIL_BRAND]: true;
+};
 
 /**
  * A safe email address that has passed all validation checks and is safe to send to.
@@ -96,7 +98,9 @@ export type SafeEmail = ValidatedEmail & { readonly [SAFE_EMAIL_BRAND]: true };
  * await checkDuplicate(normalized as NormalizedEmail);
  * ```
  */
-export type NormalizedEmail = string & { readonly [NORMALIZED_EMAIL_BRAND]: true };
+export type NormalizedEmail = string & {
+  readonly [NORMALIZED_EMAIL_BRAND]: true;
+};
 
 /**
  * Type guard to check if a value is a validated email
@@ -105,7 +109,7 @@ export type NormalizedEmail = string & { readonly [NORMALIZED_EMAIL_BRAND]: true
  * @returns True if the value is a ValidatedEmail
  */
 export function isValidatedEmail(value: unknown): value is ValidatedEmail {
-  return typeof value === "string" && value.length > 0;
+  return typeof value === 'string' && value.length > 0;
 }
 
 /**
@@ -125,7 +129,7 @@ export function isSafeEmail(value: unknown): value is SafeEmail {
  * @returns True if the value is a NormalizedEmail
  */
 export function isNormalizedEmail(value: unknown): value is NormalizedEmail {
-  return typeof value === "string" && value.length > 0;
+  return typeof value === 'string' && value.length > 0;
 }
 
 /**
@@ -137,7 +141,7 @@ export function isNormalizedEmail(value: unknown): value is NormalizedEmail {
  */
 export function assertValidatedEmail(email: string): asserts email is ValidatedEmail {
   if (!email || email.length === 0) {
-    throw new Error("Invalid email: empty string");
+    throw new Error('Invalid email: empty string');
   }
 }
 
@@ -161,6 +165,6 @@ export function assertSafeEmail(email: string): asserts email is SafeEmail {
  */
 export function assertNormalizedEmail(email: string): asserts email is NormalizedEmail {
   if (!email || email.length === 0) {
-    throw new Error("Invalid email: empty string");
+    throw new Error('Invalid email: empty string');
   }
 }
