@@ -59,7 +59,7 @@ export class InboxHealthService {
   }
 
   //https://github.com/enbits/nodejs-dkim-dns-validator/blob/master/dkimValidator.js
-  async lookupDKIM(email: string, dkimDomain): Promise<RecordLookup> {
+  async lookupDKIM(email: string, dkimDomain?: string): Promise<RecordLookup> {
     const domainParts = splitEmailDomain(email);
     try {
       if (!domainParts) return { exists: false, records: null };

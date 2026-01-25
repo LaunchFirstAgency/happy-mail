@@ -3,6 +3,8 @@ import {
   HappyEmailClientOptions,
   BatchValidationOptions,
   BatchValidationResult,
+  ValidateAndNormalizeResult,
+  DomainInfo,
 } from "./client";
 import { MailValidatorResponse, MailBoxCanReceiveStatus, EmailType, MXHostType, DomainParts, Email } from "./types";
 import {
@@ -65,12 +67,53 @@ export {
   Logger,
 } from "./util/logger";
 
+// Export error classes and utilities
+export {
+  HappyMailError,
+  ValidationError,
+  NetworkError,
+  APIError,
+  ConfigurationError,
+  ErrorCode,
+  retryWithBackoff,
+  isHappyMailError,
+  isRecoverableError,
+  type RetryConfig,
+} from "./errors";
+
+// Export configuration presets
+export {
+  getPreset,
+  PRESETS,
+  PRODUCTION_PRESET,
+  DEVELOPMENT_PRESET,
+  STRICT_PRESET,
+  LENIENT_PRESET,
+  PRESET_DESCRIPTIONS,
+  type PresetName,
+} from "./presets";
+
+// Export branded types
+export {
+  type ValidatedEmail,
+  type SafeEmail,
+  type NormalizedEmail,
+  isValidatedEmail,
+  isSafeEmail,
+  isNormalizedEmail,
+  assertValidatedEmail,
+  assertSafeEmail,
+  assertNormalizedEmail,
+} from "./types/branded";
+
 // Export main client and types
 export {
   HappyEmailClient,
   HappyEmailClientOptions,
   BatchValidationOptions,
   BatchValidationResult,
+  ValidateAndNormalizeResult,
+  DomainInfo,
   MailValidatorResponse,
   MailBoxCanReceiveStatus,
   Email,

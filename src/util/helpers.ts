@@ -102,7 +102,8 @@ export function splitEmailDomain(email: string): DomainParts | false {
   const address = email.split("@").pop();
 
   try {
-    return parser(`http://${address}`);
+    const result = parser(`http://${address}`);
+    return result || false;
   } catch (error) {
     Logger.error(`Invalid Domain for Email ${email}`, error);
     return false;

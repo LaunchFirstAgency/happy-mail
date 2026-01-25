@@ -2,9 +2,9 @@ import { EmailValidationService, type IEmailVerificationService } from "@/valida
 import { InboxHealthService } from "@/inbox-health/inbox-health.service";
 import { NeverBounceService } from "@/validation/neverbounce-verification";
 import { EmailVerificationService } from "@/validation/email-verification";
-import { MailValidatorResponse } from "@/types";
+import { MailValidatorResponse, MXHostType } from "@/types";
 import { RecordLookup } from "@/inbox-health/inbox-health.service";
-import { Logger } from "@/util";
+import { Logger, normalizeEmailAddress } from "@/util";
 import { NeverBounceBulkVerification } from "./validation/neverbounce-bulk-verification";
 import type {
   BulkJobRequest,
@@ -14,11 +14,16 @@ import type {
   JobResultsQuery,
   JobSearchQuery,
 } from "./validation/neverbounce-bulk-verification";
+import { getPreset, type PresetName } from "./presets";
+import { isValid } from "./validation/result-helpers";
+import { ConfigurationError, ErrorCode } from "./errors";
 
 /**
  * Configuration options for HappyEmailClient
  */
 export interface HappyEmailClientOptions {
+  /** Configuration preset to use ('production', 'development', 'strict', 'lenient') */
+  preset?: PresetName;
   /** NeverBounce API key for enhanced email verification */
   neverBounceApiKey?: string;
   /** Custom email verification service */
@@ -31,6 +36,44 @@ export interface HappyEmailClientOptions {
   minLengthForRandomCheck?: number;
   /** Enable or disable logging (default: true) */
   loggingEnabled?: boolean;
+}
+
+/**
+ * Result of validateAndNormalize convenience method
+ */
+export interface ValidateAndNormalizeResult {
+  /** Whether the email is valid */
+  isValid: boolean;
+  /** Original email address */
+  original: string;
+  /** Normalized email address (only if valid) */
+  normalized?: string;
+  /** Full validation result */
+  validation: MailValidatorResponse;
+}
+
+/**
+ * Aggregate domain information
+ */
+export interface DomainInfo {
+  /** Domain name */
+  domain: string;
+  /** Whether MX records exist */
+  hasMX: boolean;
+  /** MX record provider */
+  mxProvider?: string;
+  /** Whether SPF record exists */
+  hasSPF: boolean;
+  /** Whether DMARC record exists */
+  hasDMARC: boolean;
+  /** Whether SSL certificate is valid */
+  hasSSL: boolean;
+  /** Domain age in years */
+  domainAge?: number;
+  /** Overall health score (0-100) */
+  healthScore: number;
+  /** Health assessment */
+  assessment: "excellent" | "good" | "fair" | "poor";
 }
 
 /**
@@ -73,12 +116,23 @@ export class HappyEmailClient {
   /**
    * Create a new HappyEmailClient
    * @param options Configuration options for the client
+   * @throws {ConfigurationError} If configuration is invalid
    */
   constructor(options: HappyEmailClientOptions = {}) {
-    this.options = options;
+    // Apply preset if specified
+    if (options.preset) {
+      const presetConfig = getPreset(options.preset);
+      // Preset values are defaults, explicit options override them
+      this.options = { ...presetConfig, ...options };
+    } else {
+      this.options = options;
+    }
+
+    // Validate configuration
+    this.validateConfiguration(this.options);
 
     // Configure logging
-    Logger.setEnabled(options.loggingEnabled !== false); // Enable logging by default unless explicitly disabled
+    Logger.setEnabled(this.options.loggingEnabled !== false); // Enable logging by default unless explicitly disabled
 
     // Initialize email verification service
     let emailVerificationService: IEmailVerificationService;
@@ -106,6 +160,32 @@ export class HappyEmailClient {
 
     // Initialize inbox health service
     this.inboxHealthService = new InboxHealthService();
+  }
+
+  /**
+   * Validate client configuration
+   * @private
+   */
+  private validateConfiguration(options: HappyEmailClientOptions): void {
+    if (options.entropyThreshold !== undefined) {
+      if (options.entropyThreshold < 0 || options.entropyThreshold > 10) {
+        throw new ConfigurationError(
+          "entropyThreshold must be between 0 and 10",
+          ErrorCode.INVALID_CONFIGURATION,
+          { context: { entropyThreshold: options.entropyThreshold } }
+        );
+      }
+    }
+
+    if (options.minLengthForRandomCheck !== undefined) {
+      if (options.minLengthForRandomCheck < 0) {
+        throw new ConfigurationError(
+          "minLengthForRandomCheck must be non-negative",
+          ErrorCode.INVALID_CONFIGURATION,
+          { context: { minLengthForRandomCheck: options.minLengthForRandomCheck } }
+        );
+      }
+    }
   }
 
   private ensureBulkVerification(): void {
@@ -185,6 +265,213 @@ export class HappyEmailClient {
     }
 
     return results;
+  }
+
+  /**
+   * Validate an email and return the normalized version if valid.
+   *
+   * This convenience method combines validation and normalization in one call,
+   * making it easy to both validate and get the canonical form of an email.
+   *
+   * @param email - Email address to validate and normalize
+   * @param skipBounceCheck - Whether to skip bounce check (default: uses client setting)
+   * @returns Validation and normalization result
+   *
+   * @example
+   * ```typescript
+   * const result = await client.validateAndNormalize('John.Doe+tag@Gmail.com');
+   *
+   * if (result.isValid && result.normalized) {
+   *   // Use normalized email to check for duplicates
+   *   const exists = await database.findByEmail(result.normalized);
+   * }
+   * ```
+   */
+  async validateAndNormalize(
+    email: string,
+    skipBounceCheck?: boolean
+  ): Promise<ValidateAndNormalizeResult> {
+    const validation = await this.validateEmail(email, skipBounceCheck);
+    const valid = isValid(validation);
+
+    let normalized: string | undefined;
+    if (valid && validation.normalizedEmail) {
+      normalized = typeof validation.normalizedEmail === 'string' ? validation.normalizedEmail : undefined;
+    } else if (valid) {
+      // Fallback normalization using provider info
+      normalized = normalizeEmailAddress(email, validation.provider || MXHostType.OTHER);
+    }
+
+    return {
+      isValid: valid,
+      original: email,
+      normalized,
+      validation,
+    };
+  }
+
+  /**
+   * Quick email validation without bounce checking.
+   *
+   * This is an optimized method for fast validation that skips bounce checks
+   * and focuses on syntax, disposable domain detection, and random email detection.
+   *
+   * Ideal for:
+   * - Real-time form validation
+   * - Quick signup flows
+   * - Initial screening
+   *
+   * @param email - Email address to check
+   * @returns Validation response
+   *
+   * @example
+   * ```typescript
+   * // Fast validation for form feedback
+   * const result = await client.quickCheck('user@example.com');
+   *
+   * if (!result.risks.validSyntax) {
+   *   return 'Invalid email format';
+   * }
+   * if (result.risks.disposableDomain) {
+   *   return 'Disposable emails not allowed';
+   * }
+   * ```
+   */
+  async quickCheck(email: string): Promise<MailValidatorResponse> {
+    return this.validateEmail(email, true); // Always skip bounce check
+  }
+
+  /**
+   * Comprehensive email validation with all checks enabled.
+   *
+   * This method performs the most thorough validation possible, including:
+   * - Syntax validation
+   * - Disposable domain check
+   * - Random email detection
+   * - Bounce/deliverability check (if configured)
+   *
+   * Ideal for:
+   * - High-value user signups
+   * - Marketing campaign lists
+   * - Critical email validation
+   *
+   * @param email - Email address to check
+   * @returns Validation response
+   *
+   * @example
+   * ```typescript
+   * // Thorough validation for important signups
+   * const result = await client.fullCheck('user@example.com');
+   *
+   * if (isSafeToSend(result)) {
+   *   await createAccount(result.email);
+   * }
+   * ```
+   */
+  async fullCheck(email: string): Promise<MailValidatorResponse> {
+    return this.validateEmail(email, false); // Always do bounce check
+  }
+
+  /**
+   * Get aggregate domain health information.
+   *
+   * This convenience method performs all domain health checks in parallel
+   * and returns an aggregate health score and assessment.
+   *
+   * Checks performed:
+   * - MX records
+   * - SPF records
+   * - DMARC records
+   * - SSL certificate
+   * - Domain age
+   *
+   * @param email - Email address or domain to check
+   * @returns Aggregate domain information
+   *
+   * @example
+   * ```typescript
+   * const info = await client.getDomainInfo('user@example.com');
+   *
+   * console.log(`Domain: ${info.domain}`);
+   * console.log(`Health Score: ${info.healthScore}/100`);
+   * console.log(`Assessment: ${info.assessment}`);
+   *
+   * if (info.assessment === 'poor') {
+   *   console.log('Domain may have deliverability issues');
+   * }
+   * ```
+   */
+  async getDomainInfo(email: string): Promise<DomainInfo> {
+    // Run all checks in parallel for efficiency
+    const [mx, spf, dmarc, ssl, age] = await Promise.allSettled([
+      this.checkMX(email),
+      this.checkSPF(email),
+      this.checkDMARC(email),
+      this.checkSSL(email),
+      this.getDomainAge(email),
+    ]);
+
+    // Extract domain from email
+    const domain = email.includes('@') ? email.split('@')[1] : email;
+
+    // Process results
+    const hasMX = mx.status === 'fulfilled' && mx.value.exists;
+    const mxProvider = mx.status === 'fulfilled' ? mx.value.provider : undefined;
+    const hasSPF = spf.status === 'fulfilled' && spf.value.exists;
+    const hasDMARC = dmarc.status === 'fulfilled' && dmarc.value.exists;
+    const hasSSL = ssl.status === 'fulfilled' && 'validTo' in ssl.value;
+
+    // Calculate domain age from creation date if available
+    let domainAge: number | undefined;
+    if (age.status === 'fulfilled' && 'createdOn' in age.value && age.value.createdOn) {
+      try {
+        const creationDate = new Date(age.value.createdOn);
+        const ageInMilliseconds = Date.now() - creationDate.getTime();
+        domainAge = ageInMilliseconds / (1000 * 60 * 60 * 24 * 365.25); // Convert to years
+      } catch {
+        domainAge = undefined;
+      }
+    }
+
+    // Calculate health score (0-100)
+    let healthScore = 0;
+    const checks = [
+      { passed: hasMX, weight: 30 },       // MX is most important
+      { passed: hasSPF, weight: 20 },      // SPF is important
+      { passed: hasDMARC, weight: 20 },    // DMARC is important
+      { passed: hasSSL, weight: 15 },      // SSL is moderately important
+      { passed: domainAge && domainAge >= 1, weight: 15 }, // Age is moderately important
+    ];
+
+    checks.forEach(check => {
+      if (check.passed) {
+        healthScore += check.weight;
+      }
+    });
+
+    // Determine assessment
+    let assessment: "excellent" | "good" | "fair" | "poor";
+    if (healthScore >= 85) {
+      assessment = "excellent";
+    } else if (healthScore >= 65) {
+      assessment = "good";
+    } else if (healthScore >= 40) {
+      assessment = "fair";
+    } else {
+      assessment = "poor";
+    }
+
+    return {
+      domain,
+      hasMX,
+      mxProvider,
+      hasSPF,
+      hasDMARC,
+      hasSSL,
+      domainAge,
+      healthScore,
+      assessment,
+    };
   }
 
   /**

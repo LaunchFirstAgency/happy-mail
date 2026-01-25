@@ -142,7 +142,8 @@ export class EmailVerificationService implements IEmailVerificationService {
           // If the SMTP query was successful, return the result
           return smtpResult;
         } catch (smtpError) {
-          Logger.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${smtpError.message}`);
+          const errorMessage = smtpError instanceof Error ? smtpError.message : String(smtpError);
+          Logger.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${errorMessage}`);
           // Continue to the next port
         }
       }

@@ -1,14 +1,14 @@
 import type { DomainParts } from "@/types";
 
 //parses TXT record into an array
-const buildItemsArray = (item) => {
+const buildItemsArray = (item: string): Record<string, string> => {
   var splittedItem = item.trim().split("=");
   var itemKey = splittedItem[0];
   var itemValue = splittedItem[1];
   return { [itemKey]: itemValue };
 };
 
-export function validateDkim(response) {
+export function validateDkim(response: any) {
   if (response === undefined) {
     return {
       result: false,
@@ -18,12 +18,17 @@ export function validateDkim(response) {
   }
 
   //validation rules
-  const validationRules = {
+  const validationRules: {
+    v: string;
+    g: string;
+    k: string;
+    p: RegExp;
+  } = {
     v: "DKIM1",
     g: "*",
     k: "rsa",
     p: /^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$/,
-  } as const;
+  };
 
   //get DKIM TXT record from result
   const dkimData = response[0][0].split(";");
@@ -31,15 +36,15 @@ export function validateDkim(response) {
   //parse it into an array
   const itemsArray = dkimData.map(buildItemsArray);
 
-  let validationsErrors = {} as Record<string, any>;
+  let validationsErrors: Record<string, any> = {};
 
-  itemsArray.forEach((item) => {
+  itemsArray.forEach((item: Record<string, string>) => {
     var key = Object.keys(item)[0];
     var value = item[key];
 
     if (key !== "p") {
-      if (value !== validationRules[key]) {
-        validationsErrors[key] = { found: value, shouldBe: validationRules[key] };
+      if (key in validationRules && value !== validationRules[key as keyof typeof validationRules]) {
+        validationsErrors[key] = { found: value, shouldBe: validationRules[key as keyof typeof validationRules] };
       }
     } else {
       //public key regexp test

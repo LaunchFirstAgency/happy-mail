@@ -6,7 +6,7 @@ const lookupAsync = promisify(lookup);
 const ipRegex =
   /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
-function reverseIp(ip) {
+function reverseIp(ip: string): string {
   return ip.split(".").reverse().join(".");
 }
 
@@ -26,7 +26,7 @@ async function checkSpamhaus(ip: string) {
       results.push({ isListed: true, list: "SBL" });
     }
   } catch (error) {
-    if (error.code === "ENOTFOUND") {
+    if (error instanceof Error && 'code' in error && error.code === "ENOTFOUND") {
       results.push({ isListed: false, list: "SBL" });
     }
   }
@@ -37,7 +37,7 @@ async function checkSpamhaus(ip: string) {
       results.push({ isListed: true, list: "Zen" });
     }
   } catch (error) {
-    if (error.code === "ENOTFOUND") {
+    if (error instanceof Error && 'code' in error && error.code === "ENOTFOUND") {
       results.push({ isListed: false, list: "Zen" });
     }
   }
@@ -45,7 +45,7 @@ async function checkSpamhaus(ip: string) {
   return results;
 }
 
-async function resolveDomainToIpAndCheck(domain) {
+async function resolveDomainToIpAndCheck(domain: string) {
   try {
     const address = await lookupAsync(domain, { family: 4 });
     Logger.log(`Resolved IP for ${domain}: ${address.address}`);
