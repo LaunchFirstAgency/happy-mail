@@ -254,13 +254,13 @@ function sendEmail(email: ValidatedEmail) {
 **Actions**:
 - Move all static utility methods to separate exports
 - Update examples and documentation
-- Maintain backward compatibility with deprecation warnings
+
 
 #### 4.3 Internal vs Public API
 **Actions**:
 - Clearly mark internal APIs with `@internal` JSDoc tags
 - Create `@launchfirstagency/happy-mail/internal` for advanced users
-- Document which APIs are stable vs experimental
+
 
 ---
 
