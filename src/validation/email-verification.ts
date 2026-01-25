@@ -48,6 +48,7 @@ type EmailVerificationOptions = {
 };
 /**
  * Email Verification Service
+ * @internal - Use HappyEmailClient methods instead for public API
  *
  * This service is used to verify email addresses using SMTP.
  * It will try to connect to the email server and send a message to the email address.
@@ -142,7 +143,8 @@ export class EmailVerificationService implements IEmailVerificationService {
           // If the SMTP query was successful, return the result
           return smtpResult;
         } catch (smtpError) {
-          Logger.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${smtpError.message}`);
+          const errorMessage = smtpError instanceof Error ? smtpError.message : String(smtpError);
+          Logger.error(`Error connecting to ${currentMxRecord.exchange} on port ${port}: ${errorMessage}`);
           // Continue to the next port
         }
       }

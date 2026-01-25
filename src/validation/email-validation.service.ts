@@ -15,11 +15,20 @@ const DISPOSABLE_DOMAINS = require("./data/disposable-email-domains.json");
 const WILDCARD_DISPOSABLE_DOMAINS = require("./data/wildcard-disposable-email-domains.json");
 const PERSONAL_DOMAINS = require("./data/personal-email-domains.json");
 
+/**
+ * Interface for email verification services
+ * @internal
+ */
 export interface IEmailVerificationService {
   verify(email: string): Promise<EmailVerificationResponse>;
 }
+
 type VerificationResult = "valid" | "invalid" | "disposable" | "catchall" | "unknown";
-//todo: consider adding detail flags like NeverBounceFlagTypes enum
+
+/**
+ * Response from email verification service
+ * @internal
+ */
 export type EmailVerificationResponse = {
   success: boolean;
   result: VerificationResult;
@@ -28,6 +37,11 @@ export type EmailVerificationResponse = {
   code: EmailVerificationInfoCodes;
   tryagain?: boolean;
 };
+
+/**
+ * Service for email validation and verification
+ * @internal - Use HappyEmailClient instead for public API
+ */
 export class EmailValidationService {
   private emailVerificationService: IEmailVerificationService;
 

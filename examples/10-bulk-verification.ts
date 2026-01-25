@@ -1,4 +1,13 @@
-import { HappyEmailClient, InputLocationType } from "../src";
+/**
+ * NeverBounce Bulk Verification Example
+ *
+ * This example demonstrates how to use NeverBounce's bulk verification API
+ * for large-scale email validation jobs.
+ *
+ * Note: Requires NEVER_BOUNCE_API_KEY environment variable
+ */
+
+import { HappyEmailClient, InputLocationType } from "@launchfirstagency/happy-mail";
 
 async function bulkVerificationExample() {
   // Create a client with NeverBounce API key

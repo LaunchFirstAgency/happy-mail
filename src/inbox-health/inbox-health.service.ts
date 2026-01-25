@@ -6,8 +6,17 @@ import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim
 import { MXHostType } from "@/types/mx-host";
 
 const resolveTxtAsync = promisify(resolveTxt);
+
+/**
+ * Result of DNS record lookup
+ * @internal
+ */
 export type RecordLookup = { exists: boolean; records: string | string[] | null };
 
+/**
+ * Service for checking inbox health metrics (MX, SPF, DMARC, DKIM, SSL)
+ * @internal - Use HappyEmailClient methods instead for public API
+ */
 export class InboxHealthService {
   private emailValidationService: EmailValidationService;
   constructor() {
@@ -59,7 +68,7 @@ export class InboxHealthService {
   }
 
   //https://github.com/enbits/nodejs-dkim-dns-validator/blob/master/dkimValidator.js
-  async lookupDKIM(email: string, dkimDomain): Promise<RecordLookup> {
+  async lookupDKIM(email: string, dkimDomain?: string): Promise<RecordLookup> {
     const domainParts = splitEmailDomain(email);
     try {
       if (!domainParts) return { exists: false, records: null };
