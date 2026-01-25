@@ -6,8 +6,17 @@ import { constructGoogleDkimSelector, constructOutlookDkimSelector, validateDkim
 import { MXHostType } from "@/types/mx-host";
 
 const resolveTxtAsync = promisify(resolveTxt);
+
+/**
+ * Result of DNS record lookup
+ * @internal
+ */
 export type RecordLookup = { exists: boolean; records: string | string[] | null };
 
+/**
+ * Service for checking inbox health metrics (MX, SPF, DMARC, DKIM, SSL)
+ * @internal - Use HappyEmailClient methods instead for public API
+ */
 export class InboxHealthService {
   private emailValidationService: EmailValidationService;
   constructor() {

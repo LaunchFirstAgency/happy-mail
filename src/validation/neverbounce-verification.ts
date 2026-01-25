@@ -9,6 +9,7 @@ import { Logger } from "@/util";
 
 /**
  * Implementation of NeverBounce email verification service
+ * @internal - Use HappyEmailClient with neverBounceApiKey option instead
  * @see https://developers.neverbounce.com/reference/single-check
  */
 export class NeverBounceService implements IEmailVerificationService {

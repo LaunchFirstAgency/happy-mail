@@ -105,6 +105,10 @@ export enum InputLocationType {
   SUPPLIED = "supplied",
 }
 
+/**
+ * Service for NeverBounce bulk email verification
+ * @internal - Use HappyEmailClient bulk methods instead for public API
+ */
 export class NeverBounceBulkVerification {
   private readonly apiKey: string;
 

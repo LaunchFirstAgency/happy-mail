@@ -1,3 +1,20 @@
+/**
+ * @packageDocumentation
+ * Happy Mail - Email validation and deliverability checking for Node.js
+ *
+ * @example
+ * ```typescript
+ * import { HappyEmailClient, isValid } from '@launchfirstagency/happy-mail';
+ *
+ * const client = new HappyEmailClient({ preset: 'production' });
+ * const result = await client.validateEmail('user@example.com');
+ *
+ * if (isValid(result)) {
+ *   console.log('Email is valid!');
+ * }
+ * ```
+ */
+
 import {
   HappyEmailClient,
   HappyEmailClientOptions,
@@ -18,7 +35,31 @@ import {
 } from "./validation/neverbounce-bulk-verification";
 import { CertificateInfo } from "./util/ssl-checker";
 
-// Re-export result interpretation helpers
+// ============================================================================
+// PRIMARY API - Main Client
+// ============================================================================
+
+/**
+ * Main client for email validation and verification
+ * @public
+ */
+export {
+  HappyEmailClient,
+  type HappyEmailClientOptions,
+  type BatchValidationOptions,
+  type BatchValidationResult,
+  type ValidateAndNormalizeResult,
+  type DomainInfo,
+};
+
+// ============================================================================
+// RESULT INTERPRETATION - Helper Functions
+// ============================================================================
+
+/**
+ * Result interpretation helpers for understanding validation results
+ * @public
+ */
 export {
   isValid,
   isSafeToSend,
@@ -32,42 +73,33 @@ export {
   type RejectionReason,
 } from "./validation/result-helpers";
 
-// Re-export utility functions
-export {
-  isValidEmail,
-  normalizeEmailAddress,
-  splitEmailDomain,
-} from "./util/helpers";
+// ============================================================================
+// CONFIGURATION - Presets and Options
+// ============================================================================
 
+/**
+ * Configuration presets for common use cases
+ * @public
+ */
 export {
-  resolveMxRecords,
-  checkPort,
-  lowestPriorityMxRecord,
-} from "./util/mx";
+  getPreset,
+  PRESETS,
+  PRODUCTION_PRESET,
+  DEVELOPMENT_PRESET,
+  STRICT_PRESET,
+  LENIENT_PRESET,
+  PRESET_DESCRIPTIONS,
+  type PresetName,
+} from "./presets";
 
-export {
-  calculateStringEntropy,
-} from "./util/string-utils";
+// ============================================================================
+// ERROR HANDLING - Custom Errors and Retry Utilities
+// ============================================================================
 
-export {
-  checkSSLCertificate,
-  getDaysBetween,
-  getDaysRemaining,
-} from "./util/ssl-checker";
-
-export {
-  whois,
-} from "./util/domain-expiry";
-
-export {
-  checkSpamList,
-} from "./inbox-health/spam-check";
-
-export {
-  Logger,
-} from "./util/logger";
-
-// Export error classes and utilities
+/**
+ * Error classes and utilities for error handling
+ * @public
+ */
 export {
   HappyMailError,
   ValidationError,
@@ -81,19 +113,14 @@ export {
   type RetryConfig,
 } from "./errors";
 
-// Export configuration presets
-export {
-  getPreset,
-  PRESETS,
-  PRODUCTION_PRESET,
-  DEVELOPMENT_PRESET,
-  STRICT_PRESET,
-  LENIENT_PRESET,
-  PRESET_DESCRIPTIONS,
-  type PresetName,
-} from "./presets";
+// ============================================================================
+// TYPE SAFETY - Branded Types
+// ============================================================================
 
-// Export branded types
+/**
+ * Branded types for compile-time email validation
+ * @public
+ */
 export {
   type ValidatedEmail,
   type SafeEmail,
@@ -106,31 +133,114 @@ export {
   assertNormalizedEmail,
 } from "./types/branded";
 
-// Export main client and types
+// ============================================================================
+// TYPES - Response and Configuration Types
+// ============================================================================
+
+/**
+ * Type definitions for validation responses and configurations
+ * @public
+ */
 export {
-  HappyEmailClient,
-  HappyEmailClientOptions,
-  BatchValidationOptions,
-  BatchValidationResult,
-  ValidateAndNormalizeResult,
-  DomainInfo,
-  MailValidatorResponse,
-  MailBoxCanReceiveStatus,
-  Email,
-  EmailType,
-  MXHostType,
-  DomainParts,
-  // Bulk verification types
-  BulkJobRequest,
-  BulkJobResponse,
-  BulkJobStatus,
-  BulkJobResults,
-  JobResultsQuery,
-  JobSearchQuery,
-  InputLocationType,
-  // Util types
-  CertificateInfo,
+  type MailValidatorResponse,
+  type MailBoxCanReceiveStatus,
+  type Email,
+  type EmailType,
+  type MXHostType,
+  type DomainParts,
 };
 
-// Default export for convenience
+// ============================================================================
+// BULK VERIFICATION - NeverBounce Types
+// ============================================================================
+
+/**
+ * Types for bulk email verification operations
+ * @public
+ */
+export {
+  type BulkJobRequest,
+  type BulkJobResponse,
+  type BulkJobStatus,
+  type BulkJobResults,
+  type JobResultsQuery,
+  type JobSearchQuery,
+  InputLocationType,
+};
+
+// ============================================================================
+// UTILITIES - Email and Domain Utilities
+// ============================================================================
+
+/**
+ * Email validation and manipulation utilities
+ * @public
+ */
+export {
+  isValidEmail,
+  normalizeEmailAddress,
+  splitEmailDomain,
+} from "./util/helpers";
+
+/**
+ * MX record utilities
+ * @public
+ */
+export {
+  resolveMxRecords,
+  checkPort,
+  lowestPriorityMxRecord,
+} from "./util/mx";
+
+/**
+ * String and entropy utilities
+ * @public
+ */
+export {
+  calculateStringEntropy,
+} from "./util/string-utils";
+
+/**
+ * SSL certificate utilities
+ * @public
+ */
+export {
+  checkSSLCertificate,
+  getDaysBetween,
+  getDaysRemaining,
+  type CertificateInfo,
+} from "./util/ssl-checker";
+
+/**
+ * Domain age and WHOIS utilities
+ * @public
+ */
+export {
+  whois,
+} from "./util/domain-expiry";
+
+/**
+ * Spam checking utilities
+ * @public
+ */
+export {
+  checkSpamList,
+} from "./inbox-health/spam-check";
+
+/**
+ * Logging utilities
+ * @public
+ */
+export {
+  Logger,
+} from "./util/logger";
+
+// ============================================================================
+// DEFAULT EXPORT
+// ============================================================================
+
+/**
+ * Default export for convenience
+ * @public
+ */
 export default HappyEmailClient;

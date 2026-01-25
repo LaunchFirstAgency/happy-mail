@@ -48,6 +48,7 @@ type EmailVerificationOptions = {
 };
 /**
  * Email Verification Service
+ * @internal - Use HappyEmailClient methods instead for public API
  *
  * This service is used to verify email addresses using SMTP.
  * It will try to connect to the email server and send a message to the email address.
